@@ -1,0 +1,31 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.Module5"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="Modul 5: Datenschutz im beruflichen Alltag" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <ScrollContainer width="100%" height="100%" vertical="true">
+                <VBox class="sapUiMediumMargin">
+                    <Title text="5.1 Arbeiten im Büro" level="H2" />
+                    <Text text="Vertrauliche Informationen dürfen nicht offen auf dem Schreibtisch liegen bleiben (Clean-Desk-Policy). Dokumente sollten sicher in abschließbaren Schränken aufbewahrt werden." wrapping="true" />
+
+                    <Title text="5.2 Nutzung von Druckern und Scannern" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Drucken Sie vertrauliche Informationen nur auf gesicherten Geräten und holen Sie Ausdrucke sofort ab. Nutzen Sie keine öffentlichen Geräte für sensible Daten." wrapping="true" />
+
+                    <Title text="5.3 E-Mail-Kommunikation" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Vermeiden Sie das Versenden sensibler Informationen per E-Mail, wenn möglich. Nutzen Sie Verschlüsselung, wenn vertrauliche Daten gesendet werden." wrapping="true" />
+
+                    <Title text="5.4 Umgang mit mobilen Geräten" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Stellen Sie sicher, dass mobile Geräte wie Laptops und Smartphones mit Passwörtern geschützt und verschlüsselt sind." wrapping="true" />
+                    
+                    <Title text="5.5 Umgang mit Fotos und Dokumentationen" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Für Fotos von Personen oder Dokumentationen, die personenbezogene Daten enthalten, ist immer eine Einwilligung erforderlich." wrapping="true" />
+
+                    <Title text="5.6 Umgang mit Datenpannen" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Melden Sie Datenpannen unverzüglich an die zuständige Stelle, z. B. den Datenschutzbeauftragten. Verzögerungen können rechtliche Konsequenzen haben." wrapping="true" />
+                </VBox>
+            </ScrollContainer>
+        </content>
+    </Page>
+</mvc:View>

@@ -1,0 +1,23 @@
+<mvc:View controllerName="sapselfservice.controller.Login"
+    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <App id="AppID">
+        <Page id="Login" title="{i18n>firstTitle}" titleAlignment="Center">
+            <content>
+                <VBox id="VBox_LoginPageID" fitContainer="true" justifyContent="Center" alignItems="Center" alignContent="Center" class="loginVBox">
+                    <items>
+                    <core:Icon id="loginicon" src="sap-icon://customer" size="3rem" />
+                    <Input id="uidID" placeholder="User ID" value="{login>/userid}" ></Input>
+                    <Input id="passwID" placeholder="Password" type="Password" value="{login>/password}"></Input>
+                    <Button id="buttID" width="10rem" text="Login" type="Emphasized" press="onLoginpress"></Button>
+                    </items>
+                </VBox>
+            </content>
+            <footer >
+                <Bar id="Bar_LoginPageID"/>
+            </footer>
+        </Page>
+    </App>
+</mvc:View>

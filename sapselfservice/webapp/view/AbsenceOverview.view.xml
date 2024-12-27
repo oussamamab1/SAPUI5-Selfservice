@@ -1,0 +1,30 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:l="sap.ui.layout" controllerName="sapselfservice.controller.AbsenceOverview">
+<Page title="Meine Abwesenheitsanträge" showNavButton="true" navButtonPress="onNavBack">
+<content>
+
+<Table id="idAbsenceTable" items="{/AbsenceRequests}">
+<columns>
+<Column>
+<Text text="Datum"/>
+</Column>
+<Column>
+<Text text="Abwesenheitsart"/>
+</Column>
+<Column>
+<Text text="Status"/>
+</Column>
+</columns>
+<items>
+<ColumnListItem>
+<cells>
+<Text text="{date}"/>
+<Text text="{absenceType}"/>
+<Text text="{status}"/>
+</cells>
+</ColumnListItem>
+</items>
+</Table>
+<Button id="NewAbsenceRequestButton" text="Neuer Abwesenheitsantrag" press="onNewAbsenceRequest"/>
+</content>
+</Page>
+</mvc:View>

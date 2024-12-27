@@ -1,0 +1,20 @@
+/* Enter your custom styles here */
+.gridSpacing {
+    padding: 16px; /* Adjust padding to control distance */
+    box-sizing: border-box; /* Ensures padding does not affect grid size */
+}
+
+.lighterText {
+    font-weight: 100;
+    font-size: small;
+    color: #6a6a6a; 
+}
+.margin-left-3{
+    margin-left: 3px;
+}
+.margin-left-20{
+    margin-left: 20px;
+}
+.margin-top-6{
+    margin-top: 6px;
+}

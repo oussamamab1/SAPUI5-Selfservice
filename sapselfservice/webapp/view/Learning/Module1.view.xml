@@ -1,0 +1,24 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.Module1"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="Modul 1: Einführung in den rechtlichen Datenschutz" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <ScrollContainer width="100%" height="100%" vertical="true">
+                <VBox class="sapUiMediumMargin">
+                    <Title text="1.1 Was ist Datenschutz?" level="H2" />
+                    <Text text="Datenschutz dient dem Schutz der Persönlichkeitsrechte natürlicher Personen, insbesondere dem Schutz vor Missbrauch personenbezogener Daten." wrapping="true" />
+                    <Text text="Das Ziel des Datenschutzes ist es, die Privatsphäre von Menschen zu bewahren, ihre persönlichen Informationen vor unberechtigtem Zugriff zu schützen und Transparenz bei der Datenverarbeitung zu gewährleisten." wrapping="true" />
+
+                    <Title text="1.2 Datenschutzgesetze und deren Zielsetzung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Die Datenschutz-Grundverordnung (DSGVO) und nationale Gesetze wie das Bundesdatenschutzgesetz (BDSG) regeln, wie personenbezogene Daten verarbeitet werden dürfen." wrapping="true" />
+                    <Text text="Die Gesetze definieren klare Rechte und Pflichten für Betroffene und Datenverarbeiter." wrapping="true" />
+
+                    <Title text="1.3 Persönlichkeitsrecht und informationelle Selbstbestimmung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Das Persönlichkeitsrecht ist das Fundament des Datenschutzes. Es gewährleistet, dass jeder Mensch über die Verwendung seiner Daten informiert wird und diese kontrollieren kann." wrapping="true" />
+                </VBox>
+            </ScrollContainer>
+        </content>
+    </Page>
+</mvc:View>

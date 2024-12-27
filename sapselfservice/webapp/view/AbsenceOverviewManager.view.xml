@@ -1,0 +1,63 @@
+<mvc:View
+    controllerName="sapselfservice.controller.AbsenceOverviewManager"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <App id="app">
+        <Page
+            id="absenceOverviewPage"
+            title="Abwesenheiten verwalten"
+            showNavButton="true"
+            navButtonPress="onNavBack">
+            <content>
+                <Table
+                    id="absenceTable"
+                    inset="false"
+                    items="{
+                        path: '/absences'
+                    }">
+                    <columns>
+                        <Column>
+                            <Text text="Mitarbeiter-ID" />
+                        </Column>
+                        <Column>
+                            <Text text="Name" />
+                        </Column>
+                        <Column>
+                            <Text text="Abwesenheitsart" />
+                        </Column>
+                        <Column>
+                            <Text text="Startdatum" />
+                        </Column>
+                        <Column>
+                            <Text text="Enddatum" />
+                        </Column>
+                        <Column>
+                            <Text text="Status" />
+                        </Column>
+                        <Column>
+                            <Text text="Aktion" />
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{MitarbeiterID}" />
+                                <Text text="{Name}" />
+                                <Text text="{Abwesenheitsart}" />
+                                <Text text="{Startdatum}" />
+                                <Text text="{Enddatum}" />
+                                <Text text="{Status}" />
+                                <Button
+                                    text="Details"
+                                    press="onDetailsPress"
+                                    type="Transparent" />
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </content>
+        </Page>
+    </App>
+</mvc:View>

@@ -1,0 +1,28 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.Module6"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="Modul 6: Technische und organisatorische Maßnahmen" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <ScrollContainer width="100%" height="100%" vertical="true">
+                <VBox class="sapUiMediumMargin">
+                    <Title text="6.1 Technische Maßnahmen" level="H2" />
+                    <Text text="Technische Maßnahmen umfassen die Verschlüsselung von Daten, sichere Passwörter und Firewalls, die den Zugriff auf Daten kontrollieren." wrapping="true" />
+
+                    <Title text="6.2 Organisatorische Maßnahmen" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Organisatorische Maßnahmen beinhalten Schulungen der Mitarbeiter, die Einführung klarer Richtlinien und regelmäßige Überprüfungen der Sicherheitsmaßnahmen." wrapping="true" />
+
+                    <Title text="6.3 Zugriffskontrollen" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Zugriff auf vertrauliche Daten sollte auf autorisierte Personen beschränkt sein. Der Zugriff sollte durch Berechtigungskonzepte dokumentiert werden." wrapping="true" />
+
+                    <Title text="6.4 Verschlüsselung und Datenmaskierung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Verschlüsselung schützt Daten vor unbefugtem Zugriff. Datenmaskierung kann verwendet werden, um Daten zu anonymisieren oder zu pseudonymisieren." wrapping="true" />
+                    
+                    <Title text="6.5 Sicherungskonzepte" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Regelmäßige Backups stellen sicher, dass Daten im Falle eines Verlustes wiederhergestellt werden können. Diese Backups sollten sicher aufbewahrt werden." wrapping="true" />
+                </VBox>
+            </ScrollContainer>
+        </content>
+    </Page>
+</mvc:View>

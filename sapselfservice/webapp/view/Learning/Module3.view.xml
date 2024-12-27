@@ -1,0 +1,32 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.Module3"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="Modul 3: Grundsätze der Datenverarbeitung" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <ScrollContainer width="100%" height="100%" vertical="true">
+                <VBox class="sapUiMediumMargin">
+                    <Title text="3.1 Rechtmäßigkeit, Verarbeitung nach Treu und Glauben und Transparenz" level="H2" />
+                    <Text text="Die Verarbeitung personenbezogener Daten darf nur auf rechtlicher Grundlage erfolgen. Das bedeutet, dass entweder eine Einwilligung vorliegen oder eine gesetzliche Erlaubnis gegeben sein muss." wrapping="true" />
+                    <Text text="Transparenz bedeutet, dass betroffene Personen über die Verarbeitung ihrer Daten umfassend informiert werden müssen, z. B. durch Datenschutzhinweise." wrapping="true" />
+
+                    <Title text="3.2 Zweckbindung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Personenbezogene Daten dürfen nur für eindeutig festgelegte und legitime Zwecke erhoben werden. Eine spätere Nutzung für andere Zwecke ist nur mit erneuter Einwilligung möglich." wrapping="true" />
+                    
+                    <Title text="3.3 Datenminimierung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Nur die für den Zweck tatsächlich notwendigen Daten dürfen erhoben und verarbeitet werden. Daten, die nicht relevant sind, dürfen nicht gespeichert werden." wrapping="true" />
+
+                    <Title text="3.4 Speicherbegrenzung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Daten dürfen nur so lange gespeichert werden, wie sie für den Zweck benötigt werden. Nach Ablauf der Aufbewahrungsfrist sind sie zu löschen oder anonymisieren." wrapping="true" />
+
+                    <Title text="3.5 Integrität und Vertraulichkeit" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Es müssen technische und organisatorische Maßnahmen getroffen werden, um die Sicherheit der Daten zu gewährleisten. Dazu gehören Zugriffskontrollen, Verschlüsselung und Schulungen der Mitarbeiter." wrapping="true" />
+
+                    <Title text="3.6 Rechenschaftspflicht" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Verantwortliche müssen jederzeit nachweisen können, dass sie die gesetzlichen Vorgaben zur Datenverarbeitung einhalten. Dies erfordert eine umfassende Dokumentation aller Maßnahmen und Prozesse." wrapping="true" />
+                </VBox>
+            </ScrollContainer>
+        </content>
+    </Page>
+</mvc:View>

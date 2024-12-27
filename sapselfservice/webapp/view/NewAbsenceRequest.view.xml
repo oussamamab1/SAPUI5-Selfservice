@@ -1,0 +1,68 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+
+    xmlns:core="sap.ui.core"
+    controllerName="sapselfservice.controller.NewAbsenceRequest">
+
+    <Page title="Abwesenheitsantrag anlegen">
+        <content>
+            <VBox class="sapUiSmallMargin">
+
+                <Label text="Abwesenheitsart:" />
+                <Select id="absenceTypeSelect" forceSelection="true" change="onAbsenceTypeChange" items="{
+                    path: '/AbsenceTypes',
+                    templateShareable: false
+                }">
+                    <core:Item key="{typeId}" text="{typeName}" />
+                </Select>
+            </VBox>
+
+            <VBox class="sapUiSmallMargin">
+
+                <Label text="Startdatum:" />
+                <DatePicker id="datePicker1" placeholder="dd.MM.yyyy" required="true" change="onDateChange" />
+
+                <Label text="Enddatum:" visible="false" id="endDateLabel" />
+                <DatePicker id="endDatePicker" placeholder="dd.MM.yyyy" visible="false" change="onDateChange" />
+            </VBox>
+
+            <VBox class="sapUiSmallMargin">
+
+                <Label text="Beginn (Zeit):" id="startTimeLabel" />
+                <TimePicker id="startTimePicker" change="onTimeChange" />
+
+                <Label text="Ende (Zeit):" id="endTimeLabel" />
+                <TimePicker id="endTimePicker" change="onTimeChange" />
+
+                <Label text="Dauer in Stunden:" id="durationLabel" />
+                <Input id="durationInput" value="Gearbeitete Stunden" enabled="false" />
+            </VBox>
+
+            <VBox class="sapUiSmallMargin">
+        
+                <Label text="Verfügbare Urlaubstage:" id="quotaLabel" />
+                <Input id="quotaInput" value="10" enabled="false" />
+
+                <Label text="Berechnete Urlaubstage:" id="vacationDaysLabel" visible="false" />
+                <Input id="vacationDaysInput" value="0" enabled="false" visible="false" />
+            </VBox>
+
+            <VBox class="sapUiSmallMargin">
+           
+                <Label text="Genehmigender:" />
+                <Input id="approverInput" value="Führungskraft" enabled="false" />
+
+                <Label text="Neue Notiz:" />
+                <TextArea id="noteTextArea" rows="10" width="500px" placeholder="Füge eine Notiz hinzu..." maxLength="200"/>
+            </VBox>
+        </content>
+        <footer>
+            <Toolbar>
+                <ToolbarSpacer />
+                <Button text="Sichern" type="Emphasized" press="onSaveRequest" />
+                <Button text="Abbrechen" press="onCancelRequest" />
+            </Toolbar>
+        </footer>
+    </Page>
+</mvc:View>
