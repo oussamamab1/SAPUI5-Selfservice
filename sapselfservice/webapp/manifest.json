@@ -195,9 +195,9 @@
           "target": "newAbsenceRequest"
         },
         {
-          "name": "timeCorrections",
-          "pattern": "TimeCorrections",
-          "target": "timeCorrections"
+          "name": "TimeTracking",
+          "pattern": "TimeTracking",
+          "target": "TimeTracking"
         },
         {
           "name": "PayStatements",
@@ -300,10 +300,10 @@
           "viewLevel": 3,
           "viewId": "NewAbsenceRequest"
         },
-        "timeCorrections": {
-          "viewName": "TimeCorrections",
+        "TimeTracking": {
+          "viewName": "TimeTracking",
           "viewLevel": 3,
-          "viewId": "TimeCorrections"
+          "viewId": "TimeTracking"
         },
         "PayStatements": {
           "viewName": "PayStatements",

@@ -63,9 +63,9 @@ sap.ui.define(
           });
       },
 
-      onGenericTileTimeCorrectionsPress: function () {
+      onGenericTileTimeTrackingPress: function () {
         var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("timeCorrections");
+        oRouter.navTo("TimeTracking");
       },
       onGenericTileEmployeeDataPress: function () {
         var oRouter = UIComponent.getRouterFor(this);

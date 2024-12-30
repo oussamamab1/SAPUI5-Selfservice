@@ -25,7 +25,7 @@
                         </TileContent>
                     </GenericTile>
 
-                    <GenericTile id="id.14GenericTile" class="largeTile" header="Meine Zeitkorrekturen" subheader="Meine Zeitkorrekturen anzeigen" press="onGenericTileTimeCorrectionsPress">
+                    <GenericTile id="id.14GenericTile" class="largeTile" header="Meine Zeiterfassung" subheader="Meine Zeiterfassung anzeigen" press="onGenericTileTimeTrackingPress">
                         <TileContent id="id.10TimeCorrectionsTileContent">
                             <ImageContent id="id.11TimeCorrectionsImageContent" src="sap-icon://date-time" />
                         </TileContent>

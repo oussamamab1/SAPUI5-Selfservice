@@ -13,9 +13,9 @@ sap.ui.define([], function () {
   
     var db = firebaseApp.firestore();
   
-    // Return Firebase Firestore instance for other modules
     return {
-        db: db
+        db: db,
+        Timestamp: firebase.firestore.Timestamp
     };
   });
   
