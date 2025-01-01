@@ -11,21 +11,19 @@ sap.ui.define(
 
     return Controller.extend("sapselfservice.controller.Login", {
       onInit: function () {
-        // Check if session ID is stored in local storage
-        var sessionId = localStorage.getItem("currentSessionId");
+        var sessionId = sessionStorage.getItem("currentSessionId");
         if (sessionId) {
-            // Restore user model from session ID
-            var userData = JSON.parse(localStorage.getItem(sessionId));
+            var userData = JSON.parse(sessionStorage.getItem(sessionId));
             if (userData) {
                 var oUserModel = new JSONModel(userData);
                 sap.ui.getCore().setModel(oUserModel, "userModel");
                 this.getOwnerComponent().getRouter().navTo("Main");
             } else {
-                // Redirect to login page if user data is not found
+                console.error("User data not found for session ID:", sessionId);
                 this.getOwnerComponent().getRouter().navTo("login");
             }
         } else {
-            // Redirect to login page if session ID is not found
+            console.log("No session ID found. Redirecting to login.");
             this.getOwnerComponent().getRouter().navTo("login");
         }
       },
@@ -152,15 +150,23 @@ sap.ui.define(
           const AlleUserDatav2 = convertTimestampsToDate(AlleUserData);
           const UserModel = new JSONModel(AlleUserDatav2);
           sap.ui.getCore().setModel(UserModel, "userModel");
-          
-          // Generate a session ID and store user data in session storage
-          const sessionId = "session_" + new Date().getTime();
-          sessionStorage.setItem(sessionId, JSON.stringify(AlleUserData));
-          sessionStorage.setItem("currentSessionId", sessionId);
-
           // Check userModel
           console.log("User Model Data:", UserModel.getData());
-
+          
+          var sessionId = sessionStorage.getItem("currentSessionId");
+          if (sessionId) {
+              // Restore user model from session ID
+              var userData = JSON.parse(sessionStorage.getItem(sessionId));
+              if (userData) {
+                  var oUserModel = new JSONModel(userData);
+                  sap.ui.getCore().setModel(oUserModel, "userModel");
+                  this.getOwnerComponent().getRouter().navTo("Main");
+              } else {
+                  this.getOwnerComponent().getRouter().navTo("login");
+              }
+          } else {
+              this.getOwnerComponent().getRouter().navTo("login");
+          }
           MessageToast.show("Login successful!");
           console.log("Navigating to Main view");
           this.getOwnerComponent().getRouter().navTo("Main");
