@@ -8,6 +8,24 @@
     <Page title="Zeiterfassung bearbeiten" titleAlignment="Center">
     
             <VBox fitContainer="true">
+            <Toolbar >
+            <Label text= "Meine Zeiterfassung anzeigen" class= "meinezeitererfassungCSS"></Label>
+            </Toolbar>
+            <FlexBox    
+                height="100px"
+                alignItems="Center"
+                justifyContent="Center" >
+                <Label text="Monat auswählen:" />
+                <DatePicker
+                    id="monthyearPicker"
+                    displayFormat="MM.yyyy"
+                    valueFormat="MM.yyyy"
+                    placeholder="Month.Year auswählen"
+                />
+                <ToolbarSpacer />
+                <Button text="Export to PDF" press="onExportToPDF" icon="sap-icon://pdf-attachment" type="Accept"/>
+
+            </FlexBox>
                 <Toolbar >
                 <Label text ="Meine Zeiterfassung" class="meinezeitererfassungCSS"/>
                     <ToolbarSpacer />

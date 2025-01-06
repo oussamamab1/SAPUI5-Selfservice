@@ -13,7 +13,7 @@ sap.ui.define(
        * Lifecycle-Methode: Initialisierung der View
        */
       onInit: function () {
-        var oModel = this.getView().getModel("userModel");
+        var oModel = sap.ui.getCore().getModel("userModel");
         if (!oModel || !oModel.getProperty("/Mitarbeiter-ID")) {
         console.error("Mitarbeiter-ID nicht gefunden im userModel.");
         return;

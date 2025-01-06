@@ -4,7 +4,7 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core">
 
-    <App id="app">
+    <App id="app2">
         <Page
             id="absenceOverviewPage"
             title="Abwesenheiten verwalten"

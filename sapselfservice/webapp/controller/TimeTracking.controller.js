@@ -14,6 +14,108 @@ sap.ui.define(
                 });
                 this.getView().setModel(oModel, "timeTracking");
             },
+            onExportToPDF: function () {
+                var oDatePicker = this.byId("monthyearPicker");
+                var selectedValue = oDatePicker.getValue(); 
+            
+                if (!selectedValue) {
+                    sap.m.MessageToast.show("Bitte wählen Sie Monat und Jahr aus.");
+                    return;
+                }
+            
+                var parts = selectedValue.split(".");
+                console.log("Parsed parts:", parts);
+            
+                if (parts.length !== 2) {
+                    sap.m.MessageToast.show("Ungültiges Datum. Bitte wählen Sie ein gültiges Datum.");
+                    return;
+                }
+            
+                var month = parseInt(parts[0], 10); // Ensure integer parsing
+                var year = parseInt(parts[1], 10);
+            
+                console.log("Parsed month:", month, "Parsed year:", year); // Debug log
+            
+                if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
+                    sap.m.MessageToast.show("Ungültiges Datum. Bitte wählen Sie ein gültiges Datum.");
+                    return;
+                }
+            
+                var startDate = new Date(year, month - 1, 1); // First day of the month
+                var endDate = new Date(year, month, 0); // Last day of the month
+            
+                var startTimestamp = firebase.Timestamp.fromDate(startDate);
+                var endTimestamp = firebase.Timestamp.fromDate(endDate);
+            
+                var oUserModel = sap.ui.getCore().getModel("userModel");
+                if (!oUserModel) {
+                    sap.m.MessageToast.show("User model is not set!");
+                    this.getOwnerComponent().getRouter().navTo("login");
+                    return;
+                }
+                var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
+            
+                // Query Firebase for data
+                var query = firebase.db.collection("Zeiterfassung")
+                    .where("Datum", ">=", startTimestamp)
+                    .where("Datum", "<=", endTimestamp)
+                    .where("Mitarbeiter-ID", "==", mitarbeiterId);
+            
+                query.get()
+                    .then(snapshot => {
+                        if (snapshot.empty) {
+                            sap.m.MessageToast.show("Keine Einträge für den ausgewählten Monat und das Jahr gefunden.");
+                            return;
+                        }
+            
+                        var data = [];
+                        snapshot.forEach(doc => {
+                            var entry = doc.data();
+                            data.push({
+                                Datum: entry.Datum.toDate().toLocaleDateString("de-DE"),
+                                Arbeitsbeginn: entry.Arbeitsbeginn ? entry.Arbeitsbeginn.toDate().toLocaleTimeString("de-DE") : "",
+                                Arbeitsend: entry.Arbeitsend ? entry.Arbeitsend.toDate().toLocaleTimeString("de-DE") : "",
+                                Pausendauer: entry.Pausendauer,
+                                Stundengesamt: entry.Stundengesamt
+                            });
+                        });
+                        console.log(data);
+            
+                        // Generate the PDF
+                        var doc = new jsPDF('p', 'pt', 'a4');
+            
+                        doc.setFontSize(12);
+                        doc.text(`Zeiterfassung: ${selectedValue}`, 10, 10);
+
+                        var columns = [
+                            { title: "Datum", dataKey: "Datum" },
+                            { title: "Arbeitsbeginn", dataKey: "Arbeitsbeginn" },
+                            { title: "Arbeitsend", dataKey: "Arbeitsend" },
+                            { title: "Pausendauer", dataKey: "Pausendauer" },
+                            { title: "Stundengesamt", dataKey: "Stundengesamt" }
+                        ];
+                        console.log("Columns for autoTable:", columns);
+
+                        doc.autoTable(columns, data, {
+                            startY : false,
+                            tableWidth: 550,
+                            styles: {cellPadding: 2},
+                            headerStyles: {rowHeight: 15, fontSize: 8},
+                            bodyStyles: {rowHeight: 12, fontSize: 8, valign: 'middle'},
+                            rowPageBreak: 'avoid'
+                        });
+            
+                        // Save the PDF
+                        doc.save(`Zeiterfassung_${selectedValue}.pdf`);
+                        sap.m.MessageToast.show("PDF wurde erfolgreich exportiert.");
+                    })
+                    .catch(error => {
+                        console.error("Fehler beim Abrufen der Daten:", error);
+                        sap.m.MessageToast.show("Fehler beim Exportieren der Daten.");
+                    });
+            },
+            
+            
     
             onAddRow: function () {
                 // Access the model and add a new row
@@ -59,10 +161,10 @@ sap.ui.define(
                         console.warn("Skipping incomplete entry:", entry);
                         return;
                     }
-            
                     var oUserModel = sap.ui.getCore().getModel("userModel");
                     if (!oUserModel) {
-                        MessageToast.show("User model is not set!");
+                        sap.m.MessageToast.show("User model is not set!");
+                        this.getOwnerComponent().getRouter().navTo("login");
                         return;
                     }
                     var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
@@ -112,7 +214,7 @@ sap.ui.define(
                         Arbeitsend: session2EndTime || session1EndTime,
                         Pausendauer: pause || 0,
                         Stundengesamt: totalHours || 0,
-                        MitarbeiterID: mitarbeiterId
+                        "Mitarbeiter-ID": mitarbeiterId
                     })
                     .then(() => {
                         // Use local date format for consistent logging
