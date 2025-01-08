@@ -25,7 +25,7 @@
                         </TileContent>
                     </GenericTile>
 
-                    <GenericTile id="id.14GenericTile" class="largeTile" header="Meine Zeitkorrekturen" subheader="Meine Zeitkorrekturen anzeigen" press="onGenericTileTimeCorrectionsPress">
+                    <GenericTile id="id.14GenericTile" class="largeTile" header="Meine Zeiterfassung" subheader="Meine Zeiterfassung anzeigen" press="onGenericTileTimeTrackingPress">
                         <TileContent id="id.10TimeCorrectionsTileContent">
                             <ImageContent id="id.11TimeCorrectionsImageContent" src="sap-icon://date-time" />
                         </TileContent>
@@ -58,12 +58,6 @@
                     <GenericTile id="id.5GenericTile" class="largeTile" header="Meine Lohnsteuerbescheinigungen" subheader="Anzeigen" press="onGenericTileTaxStatementsPress">
                         <TileContent id="id.37TaxStatementsTileContent">
                             <ImageContent id="id.38TaxStatementsImageContent" src="sap-icon://expense-report" />
-                        </TileContent>
-                    </GenericTile>
-
-                    <GenericTile id="id.4GenericTile" class="largeTile" header="elek. Personalakte" subheader="Akten anzeigen" press="onGenericTilePersonnelFilePress">
-                        <TileContent id="id.40PersonnelFileTileContent">
-                            <ImageContent id="id.41PersonnelFileImageContent" src="sap-icon://business-card" />
                         </TileContent>
                     </GenericTile>
 

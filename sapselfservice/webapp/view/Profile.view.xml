@@ -2,7 +2,8 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:l="sap.ui.layout.form"
-    controllerName="sapselfservice.controller.Profile">
+    controllerName="sapselfservice.controller.Profile"
+    xmlns:core="sap.ui.core">
     <Page id="_IDGenPage" title="Profil" showNavButton="true" navButtonPress="onNavBack">
         
         <headerContent>
@@ -44,6 +45,17 @@
                 <Input id="placeInput" value="{userModel>/Ort}" enabled="false"/>
                 <Label id="_IDGenLabel15" text="Postleitzahl" class="margin-top-6"/>
                 <Input id="postcodeInput" value="{userModel>/Postleitzahl}" enabled="false"  type="Number" />
+                <Label id="_sex" text="Geschlecht" class="margin-top-6"/>
+                <Select
+                    id="sexSelect"
+                    items="{
+                        path: '/genders',
+                        templateShareable: true
+                    }"
+                    enabled="false"
+                    selectedKey="{userModel>/Geschlecht}">
+                    <core:Item key="{key}" text="{text}" />
+                </Select>
 
 
                 <Label id="_IDGenLabel4" text="Geburtsdatum" class="margin-top-6"/>

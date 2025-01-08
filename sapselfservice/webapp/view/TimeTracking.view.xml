@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:table="sap.ui.table"
+    controllerName="sapselfservice.controller.TimeTracking">
+
+    <Page title="Zeiterfassung bearbeiten" titleAlignment="Center">
+    
+            <VBox fitContainer="true">
+            <Toolbar >
+            <Label text= "Meine Zeiterfassung anzeigen" class= "meinezeitererfassungCSS"></Label>
+            </Toolbar>
+            <FlexBox    
+                height="100px"
+                alignItems="Center"
+                justifyContent="Center" >
+                <Label text="Monat auswählen:" />
+                <DatePicker
+                    id="monthyearPicker"
+                    displayFormat="MM.yyyy"
+                    valueFormat="MM.yyyy"
+                    placeholder="Month.Year auswählen"
+                />
+                <ToolbarSpacer />
+                <Button text="Export to PDF" press="onExportToPDF" icon="sap-icon://pdf-attachment" type="Accept"/>
+
+            </FlexBox>
+                <Toolbar >
+                <Label text ="Meine Zeiterfassung" class="meinezeitererfassungCSS"/>
+                    <ToolbarSpacer />
+                        <ToolbarSpacer />
+                        <Button text="Eintrag Hinzufügen" press="onAddRow" icon= "sap-icon://add-activity" type= "Emphasized"/>
+                        <Button text="Löschen" press="onDeleteRow" icon="sap-icon://delete" tooltip="Wählen Eintrag zur Löschen)"/>
+                    
+                </Toolbar>
+
+                <Table id="timeTrackingTable" items="{timeTracking>/entries}" inset="false" growing="true" growingScrollToLoad="true" >
+                    <columns >
+                        <Column width="5%" >
+                            <Label />
+                        </Column>
+                        <Column width="20%">
+                            <Label text="Datum" />
+                        </Column>
+                        <Column width="30%">
+                            <Label text="Arbeitszeiten" />
+                        </Column>
+                        <Column width="10%">
+                            <Label text="Stunden" />
+                        </Column>
+                        <Column width="10%">
+                            <Label text="Pause (h)" />
+                        </Column>
+                    </columns>
+
+                    <items>
+                         <ColumnListItem >
+                            <cells>
+                                <CheckBox selected="{timeTracking>selected}" />
+                                <DatePicker value="{timeTracking>date}" id="datePicker" displayFormat="dd.MM.yyyy" />
+                                <VBox fitContainer="true">
+                                     <HBox alignItems="Center" justifyContent="SpaceBetween">
+                                        <Label text="Kommen: " />
+                                        <TimePicker value="{timeTracking>session1Start}" id="timePicker1s" displayFormat="HH:mm" change="onValidateTime" />
+                                        <Label text="Gehen: " />
+                                        <TimePicker value="{timeTracking>session1End}" id="timePicker1e" displayFormat="HH:mm" change="onValidateTime" />
+                                    </HBox>
+                                    <HBox alignItems="Center" justifyContent="SpaceBetween">
+                                        <Label text="Kommen: " />
+                                        <TimePicker value="{timeTracking>session2Start}" id="timePicker2s" displayFormat="HH:mm" change="onValidateTime" />
+                                        <Label text="Gehen: " />
+                                        <TimePicker value="{timeTracking>session2End}" id="timePicker2e" displayFormat="HH:mm" change="onValidateTime" />
+                                    </HBox>
+                                </VBox>
+                                    <Text text="{= ${timeTracking>session1Start} &amp;&amp; ${timeTracking>session1End} ? 
+                                                (((${timeTracking>session1End}.split(':')[0] - ${timeTracking>session1Start}.split(':')[0]) * 60 + 
+                                                (${timeTracking>session1End}.split(':')[1] - ${timeTracking>session1Start}.split(':')[1])) / 60).toFixed(2) + ' h' : '' }" />
+                                    <Text text="{= ${timeTracking>session1End} &amp;&amp; ${timeTracking>session2Start} ? 
+                                                (((${timeTracking>session2Start}.split(':')[0] - ${timeTracking>session1End}.split(':')[0]) * 60 + 
+                                                (${timeTracking>session2Start}.split(':')[1] - ${timeTracking>session1End}.split(':')[1])) / 60).toFixed(2) + ' h' : '0 h' }" />
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </VBox>
+        <footer>
+            <Toolbar>
+            <ToolbarSpacer />
+                <Button id = "saveButton" text="Speichern" type="Accept" press="onSaveTimeTracking"/>
+                <Button text="Abbrechen" type="Reject" press="onCancelTimeTracking"/>
+            </Toolbar>
+        </footer>
+    </Page>
+</mvc:View>

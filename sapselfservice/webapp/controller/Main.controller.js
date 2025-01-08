@@ -12,69 +12,91 @@ sap.ui.define(
       /**
        * Lifecycle-Methode: Initialisierung der View
        */
-      onInit: function () {
-        var oModel = this.getView().getModel("userModel");
+      onInit: async function () {
+        // Prüfen, ob das userModel vorhanden ist
+        var oModel = sap.ui.getCore().getModel("userModel");
         if (!oModel || !oModel.getProperty("/Mitarbeiter-ID")) {
-        console.error("Mitarbeiter-ID nicht gefunden im userModel.");
-        return;
- }
-        firebase.db
-          .collection("StelleRolle")
-          .where("Mitarbeiter-ID", "==", oModel.getProperty("/Mitarbeiter-ID"))
-          .get()
-          .then((querySnapshot) => {
-            if (!querySnapshot.empty) {
-              let rollenIds = [];
-              querySnapshot.forEach((doc) => {
-                rollenIds.push(doc.data()["Rollen-ID"]);
-              });
+          console.error("Mitarbeiter-ID nicht gefunden im userModel.");
+          return;
+        }
 
-              // Abfrage der Rolle-Sammlung basierend auf den extrahierten Rollen-IDs
-              const rolePromises = rollenIds.map((roleId) =>
-                firebase.db
-                  .collection("Rolle")
-                  .where("Rollen-ID", "==", roleId)
-                  .get()
-              );
+        try {
+          // Asynchron abfragen, ob der User eine Führungskraft ist
+          const isManager = await this._checkIfManager(oModel);
 
-              Promise.all(rolePromises).then((roleSnapshots) => {
-                let isManager = false;
+          // Sichtbarkeit des GenericTiles entsprechend setzen
+          const oTile = this.getView().byId("id.MangerGenericTile");
+          oTile.setVisible(isManager);
 
-                roleSnapshots.forEach((snapshot) => {
-                  snapshot.forEach((doc) => {
-                    const roleData = doc.data();
-                    if (roleData["Rollenbezeichnung"] === "Führungskraft") {
-                      isManager = true; // Benutzer ist Führungskraft
-                    }
-                  });
-                });
-              });
-
-              // Sichtbarkeit des GenericTiles entsprechend setzen
-              const oTile = this.getView().byId("id.MangerGenericTile");
-              oTile.setVisible(isManager);
-            } else {
-              MessageToast.show("Keine Rolle für diesen Mitarbeiter gefunden.");
-            }
-          })
-          .catch((error) => {
-            MessageToast.show("Fehler beim Abrufen der Rolle.");
-            console.error("Error fetching roles: ", error);
-          });
+          // Optional eine kleine Meldung zeigen, wenn kein Manager
+          if (!isManager) {
+            MessageToast.show("Kein Manager");
+          }
+        } catch (error) {
+          // Hier landen Fehler 
+          MessageToast.show("Fehler beim Abrufen der Rolle.");
+          console.error("Error fetching roles: ", error);
+        }
       },
 
-      onGenericTileTimeCorrectionsPress: function () {
+      /**
+       * Hilfsfunktion: Prüft, ob der aktuelle Benutzer eine Führungskraft ist
+       */
+      _checkIfManager: async function (oModel) {
+        try {
+          // 1. Rollen-IDs für den angegebenen Mitarbeiter holen
+          const stelleRolleSnapshot = await firebase.db
+            .collection("StelleRolle")
+            .where(
+              "Mitarbeiter-ID",
+              "==",
+              oModel.getProperty("/Mitarbeiter-ID")
+            )
+            .get();
+
+          if (stelleRolleSnapshot.empty) {
+            // Keine Rolle gefunden => kein Manager
+            return false;
+          }
+
+          // 2. Rollen-IDs extrahieren
+          const rollenIds = stelleRolleSnapshot.docs.map(
+            (doc) => doc.data()["Rollen-ID"]
+          );
+
+          // 3. Rollen-Dokumente mit "in"-Abfrage (max. 10 IDs) holen
+          const rolleSnapshot = await firebase.db
+            .collection("Rolle")
+            .where("Rollen-ID", "in", rollenIds)
+            .get();
+
+          // 4. Prüfen, ob Rolle "Führungskraft" vorhanden ist
+          return rolleSnapshot.docs.some(
+            (doc) => doc.data().Rollenbezeichnung === "Führungskraft"
+          );
+        } catch (error) {
+          console.error("Fehler bei der Firestore-Abfrage:", error);
+          throw error; // Fehler an onInit weitergeben
+        }
+      },
+
+     
+      onGenericTileTimeTrackingPress: function () {
         var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("timeCorrections");
+        oRouter.navTo("TimeTracking");
+        MessageToast.show("Zeiterfassung öffnen...");
       },
+
       onGenericTileEmployeeDataPress: function () {
         var oRouter = UIComponent.getRouterFor(this);
         oRouter.navTo("AbsenceOverviewManager");
       },
+
       onGenericTileTrainingPress: function () {
         var oRouter = UIComponent.getRouterFor(this);
         oRouter.navTo("Modules");
       },
+
       onGenericTileAbsencesPress: function () {
         MessageToast.show("Abwesenheitsanträge öffnen...");
         var oRouter = UIComponent.getRouterFor(this);
@@ -86,69 +108,33 @@ sap.ui.define(
         oRouter.navTo("PayStatements");
       },
 
-      /**
-       * Handler für den Tile "Meine Bankangaben"
-       */
-      onGenericTileBankDetailsPress: function () {
-        MessageToast.show("Bankangaben verwalten...");
-        // this._navigateTo("BankDetails");
-      },
+   
 
-      /**
-       * Handler für den Tile "Meine Adressen"
-       */
-      onGenericTileAddressesPress: function () {
-        MessageToast.show("Adressen verwalten...");
-        // this._navigateTo("Addresses");
-      },
-
-      /**
-       * Handler für den Tile "Mein Profil"
-       */
       onGenericTileProfilePress: function () {
         var oRouter = UIComponent.getRouterFor(this);
         oRouter.navTo("profile");
       },
 
-      /**
-       * Handler für den Tile "Mitarbeiter-VZ"
-       */
       onGenericTileEmployeeDirectoryPress: function () {
-       var oRouter = UIComponent.getRouterFor(this);
-       oRouter.navTo("EmployeeDirectory");
+        var oRouter = UIComponent.getRouterFor(this);
+        oRouter.navTo("EmployeeDirectory");
       },
 
-      /**
-       * Handler für den Tile "Meine Lohnsteuerbescheinigungen"
-       */
       onGenericTileTaxStatementsPress: function () {
         MessageToast.show("Lohnsteuerbescheinigungen anzeigen...");
-        // this._navigateTo("TaxStatements");
+        var oRouter = UIComponent.getRouterFor(this);
+        oRouter.navTo("TaxStatements");
       },
 
-      /**
-       * Handler für den Tile "elektronische Personalakte"
-       */
-      onGenericTilePersonnelFilePress: function () {
-        MessageToast.show("Elektronische Personalakte öffnen...");
-        // this._navigateTo("PersonnelFile");
-      },
+      
 
-      /**
-       * Handler für den Tile "Meine Familienmitglieder"
-       */
       onGenericTileFamilyMembersPress: function () {
         MessageToast.show("Familienmitglieder anzeigen...");
-        // this._navigateTo("FamilyMembers");
+         var oRouter = UIComponent.getRouterFor(this);
+         oRouter.navTo("FamilyMembers");
       },
 
-      /**
-       * Hilfsmethode: Navigation zu einer anderen View
-       */
-      _navigateTo: function (routeName) {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo(routeName);
-      },
+      
     });
   }
 );

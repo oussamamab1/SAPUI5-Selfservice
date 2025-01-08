@@ -18,6 +18,16 @@ sap.ui.define(
         }
         this.getView().setModel(oUserModel, "userModel");
         this._originalData = {};
+
+        // Dropdown-Daten für Geschlecht initialisieren
+        var oGenderModel = new JSONModel({
+          genders: [
+            { key: "männlich", text: "Männlich" },
+            { key: "weiblich", text: "Weiblich" },
+            { key: "divers", text: "Divers" },
+          ],
+        });
+        this.getView().setModel(oGenderModel);
       },
 
       onEditPersonalData: function () {
@@ -33,7 +43,7 @@ sap.ui.define(
         oView.byId("houseInput").setEnabled(true);
         oView.byId("placeInput").setEnabled(true);
         oView.byId("postcodeInput").setEnabled(true);
-
+        oView.byId("sexSelect").setEnabled(true); // Dropdown aktivieren
         oView.byId("editPersonalData").setVisible(false);
         oView.byId("cancelEditPersonalData").setVisible(true);
         oView.byId("savePersonalData").setEnabled(true);
@@ -50,7 +60,7 @@ sap.ui.define(
         oView.byId("houseInput").setEnabled(false);
         oView.byId("placeInput").setEnabled(false);
         oView.byId("postcodeInput").setEnabled(false);
-
+        oView.byId("sexSelect").setEnabled(false); // Dropdown deaktivieren
         oView.byId("editPersonalData").setVisible(true);
         oView.byId("cancelEditPersonalData").setVisible(false);
         oView.byId("savePersonalData").setEnabled(false);
@@ -71,7 +81,8 @@ sap.ui.define(
           !oData.Straße ||
           !oData.Hausnummer ||
           !oData.Ort ||
-          !oData.Postleitzahl // <-- einheitliche Schreibweise beachten!
+          !oData.Postleitzahl ||
+          !oData.Geschlecht
         ) {
           MessageToast.show("Bitte füllen Sie alle Pflichtfelder aus!");
           return;
@@ -80,8 +91,8 @@ sap.ui.define(
         var oView = this.getView();
         var sMitarbeiterID = oModel.getProperty("/Mitarbeiter-ID");
 
-        // Promise 1: DatenzurPerson aktualisieren
-        var pUpdatePerson = firebase.db
+        // Daten aktualisieren
+        firebase.db
           .collection("DatenZurPerson")
           .where("Mitarbeiter-ID", "==", sMitarbeiterID)
           .get()
@@ -90,7 +101,6 @@ sap.ui.define(
               MessageToast.show(
                 "Kein Dokument (DatenzurPerson) mit der angegebenen Mitarbeiter-ID gefunden."
               );
-              oncancelEditPersonalData();
               return;
             }
             var aPromises = [];
@@ -99,65 +109,30 @@ sap.ui.define(
                 doc.ref.update({
                   Vorname: oData.Vorname,
                   Nachname: oData.Nachname,
+                  Geschlecht: oData.Geschlecht, // Aktualisiere Geschlecht
                 })
               );
             });
             return Promise.all(aPromises);
-          });
-
-        // Promise 2: Anschriften aktualisieren
-        var pUpdateAnschrift = firebase.db
-          .collection("Anschriften")
-          .where("Mitarbeiter-ID", "==", sMitarbeiterID)
-          .get()
-          .then(function (querySnapshot) {
-            if (querySnapshot.empty) {
-              MessageToast.show(
-                "Kein Dokument (Anschriften) mit der angegebenen Mitarbeiter-ID gefunden."
-              );
-              oncancelEditPersonalData();
-              return;
-            }
-            var aPromises = [];
-            querySnapshot.forEach(function (doc) {
-              aPromises.push(
-                doc.ref.update({
-                  Straße: oData.Straße,
-                  Hausnummer: oData.Hausnummer,
-                  Ort: oData.Ort,
-                  // Einheitlich "Postleitzahl" verwenden
-                  Postleitzahl: oData.Postleitzahl,
-                })
-              );
-            });
-            return Promise.all(aPromises);
-          });
-
-        // Beide Promises in eine Kette packen:
-        Promise.all([pUpdatePerson, pUpdateAnschrift])
+          })
           .then(function () {
-            // Falls alles OK war
             MessageToast.show("Persönliche Daten erfolgreich gespeichert.");
-
-            // Felder wieder sperren
             oView.byId("firstNameInput").setEnabled(false);
             oView.byId("lastNameInput").setEnabled(false);
             oView.byId("streetInput").setEnabled(false);
             oView.byId("houseInput").setEnabled(false);
             oView.byId("placeInput").setEnabled(false);
             oView.byId("postcodeInput").setEnabled(false);
-
+            oView.byId("sexSelect").setEnabled(false); // Dropdown deaktivieren
             oView.byId("editPersonalData").setVisible(true);
             oView.byId("cancelEditPersonalData").setVisible(false);
             oView.byId("savePersonalData").setEnabled(false);
           })
           .catch(function (error) {
-            // Im Fehlerfall
             MessageToast.show("Fehler beim Speichern der persönlichen Daten.");
             console.error("Error updating document: ", error);
           });
       },
-
       onEditBankData: function () {
         var oModel = sap.ui.getCore().getModel("userModel");
         this._originalData.bankData = {
@@ -195,9 +170,9 @@ sap.ui.define(
           bic: oModel.getProperty("/BIC"),
         };
 
-        // Einfache Validierung (ggf. anpassen)
-        var ibanRegex = /^[A-Z]{2}[0-9]{14,26}$/;
-        var bicRegex = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
+        // Einfache Validierung 
+        var ibanRegex = /^[A-Za-z]{2}[0-9]{14,26}$/;
+        var bicRegex = /^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$/;
 
         if (!ibanRegex.test(oData.iban)) {
           MessageToast.show("Bitte geben Sie eine gültige IBAN ein.");
@@ -235,7 +210,7 @@ sap.ui.define(
             return Promise.all(aPromises);
           })
           .then(function () {
-            // Erfolg (sofern oben kein Dokument leer war)
+            // Erfolg (sofern  kein Dokument leer war)
             MessageToast.show("Bankdaten erfolgreich gespeichert.");
             var oView = that.getView();
             oView.byId("ibanInput").setEnabled(false);

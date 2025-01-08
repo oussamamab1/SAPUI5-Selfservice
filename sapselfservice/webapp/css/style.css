@@ -18,3 +18,11 @@
 .margin-top-6{
     margin-top: 6px;
 }
+.meinezeitererfassungCSS{
+    font-weight: 550;
+    font-size: large;
+    color: black;
+}
+.backgroundCSS{
+    background-color: #e9f5fc;
+}

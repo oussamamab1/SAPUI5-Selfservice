@@ -1,27 +1,45 @@
 sap.ui.define(
-    ['sap/ui/core/mvc/Controller', 'sap/m/MessageToast', 'sap/ui/core/UIComponent'],
-    function (Controller, MessageToast, UIComponent) {
+    ['sap/ui/core/mvc/Controller', 'sap/m/MessageToast', 'sap/ui/core/UIComponent', "sapselfservice/backend/firebase"],
+    function (Controller, MessageToast, UIComponent, firebase) {
         'use strict';
 
         return Controller.extend('sapselfservice.controller.NewAbsenceRequest', {
             onInit: function () {
-                // Beispiel-Datenmodell für Abwesenheitstypen
-                var oModel = new sap.ui.model.json.JSONModel({
-                    AbsenceTypes: [
-                        { typeId: '4510', typeName: 'Teleworking' },
-                        { typeId: '4500', typeName: 'Teleworking (Wochenende)' },
-                        { typeId: '0100', typeName: 'Urlaub' }
-                    ]
-                });
-                this.getView().setModel(oModel);
+                firebase.db.collection("Abwesenheitsart")
+                    .get()
+                    .then((querySnapshot) => {
+                        var abwesenheitart = [];
+                        querySnapshot.forEach((doc) => {
+                            abwesenheitart.push(doc.data());
+                        });
+                        var oModel = new sap.ui.model.json.JSONModel({
+                            Abwesenheitsart: abwesenheitart
+              
+                        });
+                        //Check oModel
+                        console.log(abwesenheitart);
+                        this.getView().setModel(oModel);
+                    }).catch((error) => {
+                        console.error("Error fetching Abwesenheitsart: ", error);
+                        MessageToast.show("Error fetching Abwesenheitsart.");
+                    });
             },
 
-            onAbsenceTypeChange: function () {
-                var oView = this.getView();
-                var selectedType = oView.byId('absenceTypeSelect').getSelectedItem();
-                var selectedText = selectedType ? selectedType.getText() : '';
+            onradioButtonChange: function (oEvent) {
+                const selectedIndex = oEvent.getParameter("selectedIndex");
+                const selectedRadioButton = selectedIndex === 0 ? "moreThanOneDay" : "oneDayOrLess";
+                this.getView().getModel().setProperty("/selectedRadioButton", selectedRadioButton);
+            },
+            
 
-                console.log('Ausgewählte Abwesenheitsart:', selectedText);
+            onAbsenceTypeChange: function (oEvent) {
+                var selectedItem = oEvent.getParameter("selectedItem");
+                if (selectedItem) {
+                    var selectedKey = selectedItem.getKey();
+                    var selectedText = selectedItem.getText();
+                    console.log('Ausgewählte Abwesenheitsart:', selectedKey, selectedText);
+
+                // console.log('Ausgewählte Abwesenheitsart:', selectedText);
 
                 if (selectedText === 'Urlaub') {
                     // Zeitfelder ausblenden
@@ -52,7 +70,9 @@ sap.ui.define(
                     oView.byId('vacationDaysLabel').setVisible(false);
                     oView.byId('vacationDaysInput').setVisible(false);
                 }
-            },
+            } else {
+                console.log('No item selected');
+            }},
 
             onDateChange: function () {
                 var oView = this.getView();
@@ -196,7 +216,7 @@ sap.ui.define(
             onCancelRequest: function () {
                 try {
                     var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
-                    oRouter.navTo('Main'); // Navigiere zurück zur Startseite
+                    oRouter.navTo('absenceOverview'); // Navigiere zurück zur Startseite
                     console.log('geklickt');
                 } catch (e) {
                     console.error('Fehler bei der Navigation zurück:', e);
