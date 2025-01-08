@@ -11,21 +11,25 @@ sap.ui.define(
 
     return Controller.extend("sapselfservice.controller.Login", {
       onInit: function () {
+        // Wenn im SessionStorage ein sessionId liegt, Userdaten laden
         var sessionId = sessionStorage.getItem("currentSessionId");
         if (sessionId) {
-            var userData = JSON.parse(sessionStorage.getItem(sessionId));
-            if (userData) {
-                var oUserModel = new JSONModel(userData);
-                sap.ui.getCore().setModel(oUserModel, "userModel");
-                this.getOwnerComponent().getRouter().navTo("Main");
-            } else {
-                console.error("User data not found for session ID:", sessionId);
-                this.getOwnerComponent().getRouter().navTo("login");
-            }
-        } else {
-            console.log("No session ID found. Redirecting to login.");
-            this.getOwnerComponent().getRouter().navTo("login");
+          var userData = JSON.parse(sessionStorage.getItem(sessionId));
+          if (userData) {
+            // Modell auf den Core setzen
+            var oUserModel = new JSONModel(userData);
+            sap.ui.getCore().setModel(oUserModel, "userModel");
+
+            // Navigation zu Main
+            this.getOwnerComponent().getRouter().navTo("Main");
+            return;
+          } else {
+            console.error("User data not found for session ID:", sessionId);
+          }
         }
+
+        // Keine Session => Bleib in login
+        console.log("No (valid) session ID found. Stopping at login page.");
       },
 
       onLoginpress: async function () {
@@ -40,6 +44,7 @@ sap.ui.define(
         }
 
         try {
+          // 1) Login in Firestore
           const zugangsdatenRef = firebase.db.collection(
             "Mitarbeiterzugangsdaten"
           );
@@ -64,6 +69,7 @@ sap.ui.define(
             return;
           }
 
+          // 2) Personaldaten
           const mitarbeiterDatenRef = firebase.db.collection("DatenZurPerson");
           const DatenDoc = await mitarbeiterDatenRef
             .where("Mitarbeiter-ID", "==", MitarbeiterID)
@@ -73,9 +79,9 @@ sap.ui.define(
             MessageBox.error("No personal data found for this user.");
             return;
           }
-
           var MitarbeiterDaten = DatenDoc.docs[0].data();
 
+          // 3) Bankdaten
           const BankDatenRef = firebase.db.collection("Bankverbindung");
           const BankDoc = await BankDatenRef.where(
             "Mitarbeiter-ID",
@@ -87,86 +93,63 @@ sap.ui.define(
             MessageBox.error("No bank data found for this user.");
             return;
           }
-
           var BankDaten = BankDoc.docs[0].data();
 
+          // 4) Adressen
           const AnschriftenRef = firebase.db.collection("Anschriften");
-          AnschriftenRef.get()
-            .then((querySnapshot) => {
-              if (!querySnapshot.empty) {
-                console.log("Documents in 'Anschriften':");
-                querySnapshot.forEach((doc) => {
-                  console.log("Document ID:", doc.id, "=> Data:", doc.data());
-                });
-              } else {
-                console.log("No documents found in 'Anschriften' collection.");
-              }
-            })
-            .catch((error) => {
-              console.error(
-                "Error fetching documents from 'Anschriften':",
-                error
-              );
-            });
+          // Statt `.get()` plus Schleife machen wir direkt:
           const AdresseDoc = await AnschriftenRef.where(
             "Mitarbeiter-ID",
             "==",
-            "M001"
+            MitarbeiterID
           ).get();
 
           if (AdresseDoc.empty) {
-            MessageBox.error("No address data found for this user."+MitarbeiterID);
+            MessageBox.error(
+              "No address data found for this user. " + MitarbeiterID
+            );
             return;
           }
-
           var AdresseDaten = AdresseDoc.docs[0].data();
 
-          // Combine all data
+          // 5) Combine all data
           const AlleUserData = {
             ...MitarbeiterDaten,
             ...BankDaten,
             ...AdresseDaten,
           };
 
-          // Convert timestamps to date
+          // 6) Timestamps => Date
           function convertTimestampsToDate(data) {
             for (var key in data) {
               if (data.hasOwnProperty(key)) {
+                let fieldVal = data[key];
+                // Prüfe, ob das Feld aussieht wie ein Firebase Timestamp
                 if (
-                  data[key] &&
-                  data[key].seconds !== undefined &&
-                  data[key].nanoseconds !== undefined
+                  fieldVal &&
+                  fieldVal.seconds !== undefined &&
+                  fieldVal.nanoseconds !== undefined
                 ) {
                   data[key] = new Date(
-                    data[key].seconds * 1000
+                    fieldVal.seconds * 1000
                   ).toLocaleDateString("de-DE");
                 }
               }
             }
             return data;
           }
+          convertTimestampsToDate(AlleUserData);
 
+          // 7) userModel erzeugen
+          const oUserModel = new JSONModel(AlleUserData);
+          sap.ui.getCore().setModel(oUserModel, "userModel");
 
-          const AlleUserDatav2 = convertTimestampsToDate(AlleUserData);
-          const UserModel = new JSONModel(AlleUserDatav2);
-          sap.ui.getCore().setModel(UserModel, "userModel");
-          // Check userModel
-          console.log("User Model Data:", UserModel.getData());
-          
-          var sessionId = sessionStorage.getItem("currentSessionId");
-          if (sessionId) {
-              // Restore user model from session ID
-              var userData = JSON.parse(sessionStorage.getItem(sessionId));
-              if (userData) {
-                  var oUserModel = new JSONModel(userData);
-                  sap.ui.getCore().setModel(oUserModel, "userModel");
-                  this.getOwnerComponent().getRouter().navTo("Main");
-              } else {
-                  this.getOwnerComponent().getRouter().navTo("login");
-              }
-          } else {
-              this.getOwnerComponent().getRouter().navTo("login");
-          }
+          // 8) Session abspeichern
+          var newSessionId = "session_" + new Date().getTime();
+          sessionStorage.setItem("currentSessionId", newSessionId);
+          sessionStorage.setItem(newSessionId, JSON.stringify(AlleUserData));
+
+          // 9) Fertig => Navigieren
           MessageToast.show("Login successful!");
           console.log("Navigating to Main view");
           this.getOwnerComponent().getRouter().navTo("Main");

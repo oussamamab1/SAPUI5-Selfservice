@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@sap/ux-ui5-tooling": "1",
-    "@ui5/cli": "^3.0.0"
+    "@ui5/cli": "^3.11.5"
   },
   "scripts": {
     "start": "fiori run --open \"index.html?sap-ui-debug=true\"",

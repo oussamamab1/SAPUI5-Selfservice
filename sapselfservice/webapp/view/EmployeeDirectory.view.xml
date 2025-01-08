@@ -3,18 +3,15 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
 >
-    <Page title="Mitarbeiterverzeichnis">
+    <Page title="Mitarbeiterverzeichnis" showNavButton="true" navButtonPress="onNavBack">
         <content>
-
-            <!-- Suchfeld zum Filtern nach Name oder Rolle -->
             <SearchField
                 width="100%"
                 placeholder="Mitarbeiter oder Rolle suchen..."
                 liveChange=".onSearchChanged"
-                showSearchButton="true" 
+                showSearchButton="true"
             />
 
-            <!-- (Optional) Button, um den vollen Datensatz wieder herzustellen -->
             <Button
                 id="idAlleAnzeigenButton"
                 text="Alle anzeigen"
@@ -23,7 +20,6 @@
                 style="Transparent"
             />
 
-            <!-- Tabelle mit Daten aus dem Model 'employees' -->
             <Table id="idEmployeeTable" items="{employees>/}">
                 <headerToolbar>
                     <Toolbar>
@@ -43,6 +39,9 @@
                     <Column>
                         <Text text="E-Mail" />
                     </Column>
+                    <Column>
+                        <Text text="Notfallkontakt" />
+                    </Column>
                 </columns>
                 <items>
                     <ColumnListItem>
@@ -51,6 +50,15 @@
                             <Text text="{employees>Nachname}" />
                             <Text text="{employees>role}" />
                             <Text text="{employees>Email}" />
+                            <Text
+                                text="{
+                                    parts: [
+                                        {path: 'employees>emergencyContactName'},
+                                        {path: 'employees>emergencyContactPhone'}
+                                    ],
+                                    formatter: '.formatEmergencyContact'
+                                }"
+                            />
                         </cells>
                     </ColumnListItem>
                 </items>

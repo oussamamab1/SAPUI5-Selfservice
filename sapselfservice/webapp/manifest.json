@@ -219,6 +219,16 @@
           "name": "EmployeeDirectory",
           "pattern": "EmployeeDirectory",
           "target": "EmployeeDirectory"
+        },
+        {
+          "name": "FamilyMembers",
+          "pattern": "FamilyMembers",
+          "target": "FamilyMembers"
+        },
+        {
+          "name": "TaxStatements",
+          "pattern": "TaxStatements",
+          "target": "TaxStatements"
         }
       ],
       "targets": {
@@ -228,10 +238,16 @@
           "clearControlAggregation": false,
           "viewId": "Login",
           "viewName": "Login"
-        },"EmployeeDirectory":{
+        },
+        "EmployeeDirectory": {
           "viewName": "EmployeeDirectory",
           "viewLevel": 3,
           "viewId": "EmployeeDirectory"
+        },
+        "FamilyMembers": {
+          "viewName": "FamilyMembers",
+          "viewLevel": 3,
+          "viewId": "FamilyMembers"
         },
         "TargetMain": {
           "viewType": "XML",
@@ -313,8 +329,13 @@
         },
         "AbsenceOverviewManager": {
           "viewName": "AbsenceOverviewManager",
-          "viewLevel": 1,
+          "viewLevel": 3,
           "viewId": "AbsenceOverviewManager"
+        },
+        "TaxStatements": {
+          "viewName": "TaxStatements",
+          "viewLevel": 3,
+          "viewId": "TaxStatements"
         },
         "AbsenceDetailsManager": {
           "viewName": "AbsenceDetailsManager",

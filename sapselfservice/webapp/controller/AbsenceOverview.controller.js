@@ -14,7 +14,7 @@ sap.ui.define(['sap/ui/core/mvc/Controller', 'sap/m/MessageToast'], function (Co
             }
         },
         onNavBack: function () {
-            sap.ui.core.UIComponent.getRouterFor(this).navTo('Main');
-        }
+        sap.ui.core.UIComponent.getRouterFor(this).navTo("Main");
+      },
     });
 });

@@ -10,14 +10,9 @@ sap.ui.define(
 
     return Controller.extend("sapselfservice.controller.EmployeeDirectory", {
       onInit: function () {
-        // Beim Start des Controllers die Daten laden
         this._loadEmployeeData();
       },
 
-      /**
-       * Lädt alle Mitarbeiterdaten inkl. Rollen aus Firestore
-       * und speichert sie in einem JSONModel namens 'employees'.
-       */
       _loadEmployeeData: function () {
         var that = this;
         var db = firebase.db;
@@ -28,43 +23,58 @@ sap.ui.define(
             var aEmployees = [];
             querySnapshot.forEach(function (doc) {
               var oEmp = doc.data();
+              oEmp.emergencyContactName = null;
+              oEmp.emergencyContactPhone = null;
               aEmployees.push(oEmp);
             });
 
             var aPromises = aEmployees.map(function (oEmp) {
-              return db
-                .collection("StelleRolle")
-                .where("Mitarbeiter-ID", "==", oEmp["Mitarbeiter-ID"])
-                .get()
-                .then(function (stelleRolleSnap) {
-                  if (!stelleRolleSnap.empty) {
-                    var oStelleRolleData = stelleRolleSnap.docs[0].data();
-                    var sStellenId = oStelleRolleData["Stellen-ID"];
+              return Promise.all([
+                db
+                  .collection("StelleRolle")
+                  .where("Mitarbeiter-ID", "==", oEmp["Mitarbeiter-ID"])
+                  .get()
+                  .then(function (stelleRolleSnap) {
+                    if (!stelleRolleSnap.empty) {
+                      var oStelleRolleData = stelleRolleSnap.docs[0].data();
+                      var sStellenId = oStelleRolleData["Stellen-ID"];
 
-                    return db
-                      .collection("Stelle")
-                      .where("Stellen-ID", "==", sStellenId)
-                      .get()
-                      .then(function (stelleSnap) {
-                        if (!stelleSnap.empty) {
-                          var oStelleData = stelleSnap.docs[0].data();
-                          oEmp.role = oStelleData["Stellenbezeichnung"];
-                        } else {
-                          oEmp.role = "";
-                        }
-                        return oEmp;
-                      });
-                  } else {
-                    oEmp.role = "";
-                    return oEmp;
-                  }
-                });
+                      return db
+                        .collection("Stelle")
+                        .where("Stellen-ID", "==", sStellenId)
+                        .get()
+                        .then(function (stelleSnap) {
+                          if (!stelleSnap.empty) {
+                            var oStelleData = stelleSnap.docs[0].data();
+                            oEmp.role = oStelleData["Stellenbezeichnung"];
+                          } else {
+                            oEmp.role = "";
+                          }
+                        });
+                    } else {
+                      oEmp.role = "";
+                    }
+                  }),
+
+                db
+                  .collection("Notfallkontakte")
+                  .doc(oEmp["Mitarbeiter-ID"])
+                  .get()
+                  .then(function (notfallSnap) {
+                    if (notfallSnap.exists) {
+                      var oNotfallData = notfallSnap.data();
+                      oEmp.emergencyContactName = oNotfallData.Name || null;
+                      oEmp.emergencyContactPhone =
+                        oNotfallData.Telefonnummer || null;
+                    }
+                  }),
+              ]).then(() => oEmp);
             });
 
             return Promise.all(aPromises);
           })
-          .then(function (aEmployeesWithRoles) {
-            var oModel = new JSONModel(aEmployeesWithRoles);
+          .then(function (aEmployeesWithRolesAndContacts) {
+            var oModel = new JSONModel(aEmployeesWithRolesAndContacts);
             that.getView().setModel(oModel, "employees");
           })
           .catch(function (error) {
@@ -73,26 +83,15 @@ sap.ui.define(
           });
       },
 
-      /**
-       * Wird bei Änderung im SearchField (liveChange) aufgerufen.
-       * - Wenn der String leer ist => Alle Daten anzeigen
-       * - Ansonsten => Filtern
-       */
       onSearchChanged: function (oEvent) {
         var sQuery = oEvent.getParameter("newValue") || "";
-        // Wenn Feld leer => alles zurücksetzen
         if (!sQuery.trim()) {
           this.onResetSearch();
         } else {
-          // Sonst filtern
           this.onSearchEmployee(oEvent);
         }
       },
 
-      /**
-       * Such-Event, das Filterlogik implemenetiert.
-       * Filtern nach Name oder Rolle.
-       */
       onSearchEmployee: function (oEvent) {
         var sQuery =
           oEvent.getParameter("query") || oEvent.getParameter("newValue") || "";
@@ -109,7 +108,6 @@ sap.ui.define(
           return;
         }
 
-        // Filtern nach Name oder Rolle
         var aFiltered = aAllEmployees.filter(function (oEmp) {
           var sName = (
             (oEmp.Vorname || "") +
@@ -117,18 +115,24 @@ sap.ui.define(
             (oEmp.Nachname || "")
           ).toLowerCase();
           var sRole = (oEmp.role || "").toLowerCase();
-
           return sName.indexOf(sQuery) !== -1 || sRole.indexOf(sQuery) !== -1;
         });
 
         oModel.setData(aFiltered);
       },
 
-      
-      //Zeigt wieder alle Daten an, indem wir sie neu geladen werden
-       
       onResetSearch: function () {
         this._loadEmployeeData();
+      },
+
+      formatEmergencyContact: function (sName, sPhone) {
+        if (!sName && !sPhone) {
+          return "Kein Notfallkontakt hinterlegt.";
+        }
+        return `${sName || "Unbekannt"} (${sPhone || "Keine Nummer"})`;
+      },
+      onNavBack: function () {
+        sap.ui.core.UIComponent.getRouterFor(this).navTo("Main");
       },
     });
   }

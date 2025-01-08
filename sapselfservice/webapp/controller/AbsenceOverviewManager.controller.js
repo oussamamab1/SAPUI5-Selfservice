@@ -11,17 +11,27 @@ sap.ui.define(
       "sapselfservice.controller.AbsenceOverviewManager",
       {
         onInit: function () {
-          var oModel = this.getView().getModel("userModel");
-          var sMitarbeiterID = oModel.getProperty("/Mitarbeiter-ID");
+          // userModel direkt vom Core holen:
+          var oModel = sap.ui.getCore().getModel("userModel");
+          if (!oModel) {
+            console.error("userModel not found in AbsenceOverviewManager!");
+            return;
+          }
 
-          //  Überprüfen, ob der Benutzer ein Abteilungsleiter ist
+          var sMitarbeiterID = oModel.getProperty("/Mitarbeiter-ID");
+          if (!sMitarbeiterID) {
+            console.error("No Mitarbeiter-ID in userModel!");
+            return;
+          }
+
+          // Überprüfen, ob der Benutzer ein Abteilungsleiter ist
           firebase.db
             .collection("Abteilung")
             .where("Abteilungsleiter-ID", "==", sMitarbeiterID)
             .get()
             .then((querySnapshot) => {
               if (!querySnapshot.empty) {
-                // wenn der Benutzer ein Abteilungsleiter ist, dann die Abteilungs-ID abrufen, um die Miarbeiter-IDs zu erhalten
+                // wenn der Benutzer ein Abteilungsleiter ist, dann die Abteilungs-ID abrufen
                 querySnapshot.forEach((doc) => {
                   var sAbteilungsID = doc.data()["Abteilungs-ID"];
 
@@ -69,7 +79,8 @@ sap.ui.define(
 
         _loadAbsenceData: function (aMitarbeiterIDs) {
           var aAbsences = [];
-          var oModel = this.getView().getModel("userModel");
+          // Wieder: userModel vom Core holen (optional)
+          var oModel = sap.ui.getCore().getModel("userModel");
 
           firebase.db
             .collection("Abwesenheiten")
@@ -112,6 +123,7 @@ sap.ui.define(
 
               Promise.all(aPromises).then(() => {
                 // Ergebnis im Model speichern
+                // Hier könnten wir z.B. /absences im userModel oder eigenem ViewModel ablegen
                 oModel.setProperty("/absences", aAbsences);
               });
             })
@@ -119,12 +131,16 @@ sap.ui.define(
               console.error("Fehler beim Abrufen der Abwesenheiten:", error);
             });
         },
+
         onDetailsPress: function (oEvent) {
           const oContext = oEvent.getSource().getBindingContext();
           const oRouter = UIComponent.getRouterFor(this);
           oRouter.navTo("AbsenceDetailsManager", {
             MitarbeiterID: oContext.getProperty("MitarbeiterID"),
           });
+        },
+        onNavBack: function () {
+          sap.ui.core.UIComponent.getRouterFor(this).navTo("Main");
         },
       }
     );

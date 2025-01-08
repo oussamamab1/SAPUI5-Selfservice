@@ -61,12 +61,6 @@
                         </TileContent>
                     </GenericTile>
 
-                    <GenericTile id="id.4GenericTile" class="largeTile" header="elek. Personalakte" subheader="Akten anzeigen" press="onGenericTilePersonnelFilePress">
-                        <TileContent id="id.40PersonnelFileTileContent">
-                            <ImageContent id="id.41PersonnelFileImageContent" src="sap-icon://business-card" />
-                        </TileContent>
-                    </GenericTile>
-
                     <GenericTile id="id.1GenericTile" class="largeTile" header="Meine Familienmitglieder" subheader="Meine Familienmitglieder anzeigen" press="onGenericTileFamilyMembersPress">
                         <TileContent id="id.49FamilyMembersTileContent">
                             <ImageContent id="id.50FamilyMembersImageContent" src="sap-icon://family-care" />
