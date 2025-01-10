@@ -240,11 +240,8 @@ sap.ui.define(
                     oModel.setProperty("/entries", []);
                     var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
                     oRouter.navTo('Main'); // Navigiere zurück zur Startseite
-                    console.log("geklickt");
-                    
                 } catch (e) {
                     console.error('Fehler bei der Navigation zurück:', e);
-                    MessageToast.show('Fehler bei der Navigation.');
                 }
             },
 

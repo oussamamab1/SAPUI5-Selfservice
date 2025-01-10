@@ -20,7 +20,7 @@
                             <core:Item key="{Abwesenheit-ID}" text="{Beschreibung}" />
                         </Select>
                         <Label text="Verfügbare Urlaubstage" id="quotaLabel" />
-                        <Text id="urlaubkontingent" text="10 Tage" />
+                        <Text id="urlaubkontingent" text="0" />
                     </f:SimpleForm>
                         
             <VBox>
@@ -33,10 +33,10 @@
 
                         <VBox id="oneDayOrLess" visible="{= ${/selectedRadioButton} === 'oneDayOrLess' }">
                             <Label text="Datum:" />
-                            <DatePicker id="dayPicker" change="onDateChange" />
-                            <Label text="Beginn (Zeit):" />
+                            <DatePicker id="datepicker" change="onDateChange" />
+                            <Label text="Beginn:" />
                             <TimePicker id="beginnTimePicker" change="onTimeChange" />
-                            <Label text="Ende (Zeit):" />
+                            <Label text="Ende:" />
                             <TimePicker id="endTimePicker" change="onTimeChange" />
                             <Label text="Dauer in Stunden:" />
                             <Input id="durationInput" value="Gearbeitete Stunden" enabled="false" />
@@ -45,16 +45,16 @@
                         <VBox id="moreThanOneDay" visible="{= ${/selectedRadioButton} === 'moreThanOneDay' }">
                             <Label text="Zeitraum:" />
                             <DateRangeSelection
-                                id="DRS3"
+                                id="Zeitraum"
                                 showCurrentDateButton="true"
                                 showFooter="true"
                                 change="onDateChange" />
-                            <Label text="Dauer in Tag:" />
+                            <Label text="Dauer in Tage:" />
                             <Input id="durationTagInput" value="urlaub Tag" enabled="false" />
                         </VBox>
 
                         <Label text="Genehmigender:" />
-                        <Input id="approverInput" value="Führungskraft" enabled="false" />
+                        <Input id="approverInput" value= "Abteilungsleiter" enabled="false" />
 
                         <Label text="Neue Notiz" />
                         <TextArea id="noteTextArea" rows="10" width="100%" placeholder="Füge eine Notiz hinzu..." maxLength="200" />
@@ -66,7 +66,7 @@
             <Toolbar>
                 <ToolbarSpacer />
                 <Button text="Sichern" type="Emphasized" press="onSaveRequest" />
-                <Button text="Abbrechen" press="onCancelRequest" />
+                <Button text="Abbrechen" press="onCancelRequest"/>
             </Toolbar>
         </footer>
     </Page>
