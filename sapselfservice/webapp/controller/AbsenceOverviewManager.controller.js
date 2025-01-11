@@ -1,144 +1,404 @@
 sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
-    "sap/ui/core/UIComponent",
+    "sap/ui/model/json/JSONModel",
+    "sap/m/MessageToast",
+    "sap/ui/core/format/DateFormat", 
     "sapselfservice/backend/firebase",
   ],
-  function (Controller, UIComponent, firebase) {
+  function (Controller, JSONModel, MessageToast, DateFormat, firebase) {
     "use strict";
 
     return Controller.extend(
       "sapselfservice.controller.AbsenceOverviewManager",
       {
         onInit: function () {
-          // userModel direkt vom Core holen:
-          var oModel = sap.ui.getCore().getModel("userModel");
-          if (!oModel) {
-            console.error("userModel not found in AbsenceOverviewManager!");
+          // 1) Eingeloggter Benutzer (Mitarbeiter-ID)
+          var oUserModel = sap.ui.getCore().getModel("userModel");
+          if (!oUserModel) {
+            MessageToast.show("User model ist nicht gesetzt!");
             return;
           }
+          this.getView().setModel(oUserModel, "userModel");
 
-          var sMitarbeiterID = oModel.getProperty("/Mitarbeiter-ID");
-          if (!sMitarbeiterID) {
-            console.error("No Mitarbeiter-ID in userModel!");
-            return;
-          }
+          // 2) JSONModel für Abwesenheiten
+          var oAbsencesModel = new JSONModel({
+            Absences: [],
+            noDataMessage: "Daten werden geladen",
+          });
+          this.getView().setModel(oAbsencesModel, "absencesModel");
 
-          // Überprüfen, ob der Benutzer ein Abteilungsleiter ist
-          firebase.db
-            .collection("Abteilung")
-            .where("Abteilungsleiter-ID", "==", sMitarbeiterID)
-            .get()
-            .then((querySnapshot) => {
-              if (!querySnapshot.empty) {
-                // wenn der Benutzer ein Abteilungsleiter ist, dann die Abteilungs-ID abrufen
-                querySnapshot.forEach((doc) => {
-                  var sAbteilungsID = doc.data()["Abteilungs-ID"];
+          // 3) Daten laden
+          this._loadAbsences();
+        },
 
-                  // Mitarbeiter-IDs aus der Tabelle OrganisatorischeZuordnung abrufen
-                  firebase.db
-                    .collection("OrganisatorischeZuordnung")
-                    .where("Abteilung-ID", "==", sAbteilungsID)
-                    .get()
-                    .then((employeeSnapshot) => {
-                      var aMitarbeiterIDs = [];
+        /**
+         * 1) Hole CEO-Stellen-ID (Stelle => "Chief Executiv Officer")
+         * 2) Hole Liste aller Mitarbeiter-IDs, die CEO sind
+         * 3) Prüfe, ob aktueller Nutzer => CEO
+         * 4) Hole relevante Mitarbeiter (je nachdem, ob CEO oder normaler Abteilungsleiter)
+         * 5) Hole Personendaten (Vorname, Nachname) für alle relevanten MA
+         * 6) Lade die Abwesenheiten (Status="In Bearbeitung") dieser MA
+         * 7) Füge Name zusammen und setze ggf. Startdatum=Enddatum=Datum
+         *    => Erzeuge zusätzlich FormattedStart / FormattedEnd
+         */
+        _loadAbsences: function () {
+          var oView = this.getView();
+          var oAbsencesModel = oView.getModel("absencesModel");
+          oAbsencesModel.setProperty("/noDataMessage", "Daten werden geladen");
+          oAbsencesModel.setProperty("/Absences", []);
 
-                      employeeSnapshot.forEach((employeeDoc) => {
-                        // alle Mitarbeiter außer dem Abteilungsleiter hinzufügen
-                        if (
-                          employeeDoc.data()["Mitarbeiter-ID"] !==
-                          sMitarbeiterID
-                        ) {
-                          aMitarbeiterIDs.push(
-                            employeeDoc.data()["Mitarbeiter-ID"]
-                          );
-                        }
-                      });
+          // Eingeloggter User
+          var sCurrentUser = oView
+            .getModel("userModel")
+            .getProperty("/Mitarbeiter-ID");
 
-                      // Abwesenheitsdaten für die Mitarbeiter abrufen
-                      this._loadAbsenceData(aMitarbeiterIDs);
-                    })
-                    .catch((error) => {
-                      console.error(
-                        "Fehler beim Abrufen der Mitarbeiter aus OrganisatorischeZuordnung:",
-                        error
-                      );
-                    });
-                });
+          let aRelevantEmpIDs = [];
+
+          // 1) CEO-Stelle
+          this._getCeoStellenID()
+            .then((sCeoStelleID) => {
+              // 2) alle CEO-Mitarbeiter-IDs
+              return this._getAllCEOs(sCeoStelleID);
+            })
+            .then((aCEOMitarbeiterIDs) => {
+              // 3) Check: Ist sCurrentUser in aCEOMitarbeiterIDs?
+              var bIsCEO = aCEOMitarbeiterIDs.includes(sCurrentUser);
+
+              if (bIsCEO) {
+                // CEO => alle MA (außer er selbst)
+                return this._getAllEmployeesButMe(sCurrentUser);
               } else {
-                console.log("Benutzer ist kein Abteilungsleiter.");
+                // Abteilungsleiter => nur MA aus seinen Abteilungen (außer er selbst)
+                return this._getManagedEmployeesButMe(sCurrentUser);
               }
             })
+            .then((aEmpIDs) => {
+              aRelevantEmpIDs = aEmpIDs;
+              // 4) Personendaten (Vorname, Nachname) für alle relevanten MA
+              return this._getPersonenMap(aEmpIDs);
+            })
+            .then((oPersonMap) => {
+              // 5) Abwesenheiten für aRelevantEmpIDs laden (Status="In Bearbeitung")
+              return this._loadAbsencesByEmployees(aRelevantEmpIDs, oPersonMap);
+            })
+            .then((aAbsences) => {
+              // Ergebnis im Model ablegen
+              if (aAbsences.length === 0) {
+                oAbsencesModel.setProperty(
+                  "/noDataMessage",
+                  "Keine vorhandenen Daten"
+                );
+              } else {
+                oAbsencesModel.setProperty("/noDataMessage", "");
+              }
+              oAbsencesModel.setProperty("/Absences", aAbsences);
+            })
             .catch((error) => {
-              console.error(
-                "Fehler beim Überprüfen der Abteilungsleiter-ID:",
-                error
+              console.error("Fehler:", error);
+              oAbsencesModel.setProperty(
+                "/noDataMessage",
+                "Keine vorhandenen Daten"
               );
             });
         },
 
-        _loadAbsenceData: function (aMitarbeiterIDs) {
-          var aAbsences = [];
-          // Wieder: userModel vom Core holen (optional)
-          var oModel = sap.ui.getCore().getModel("userModel");
+        /**
+         *  Lädt aus "Stelle" den Eintrag, dessen "Stellenbezeichnung" = "Chief Executiv Officer"
+         *  => gibt dessen "Stellen-ID" zurück 
+         */
+        _getCeoStellenID: function () {
+          return new Promise((resolve, reject) => {
+            firebase.db
+              .collection("Stelle")
+              .where("Stellenbezeichnung", "==", "Chief Executiv Officer")
+              .get()
+              .then((snapshot) => {
+                if (snapshot.empty) {
+                  return reject("Keine CEO-Stelle gefunden.");
+                }
+                let sCeoID = null;
+                snapshot.forEach((doc) => {
+                  sCeoID = doc.data()["Stellen-ID"];
+                });
+                if (!sCeoID) {
+                  return reject("Keine Stellen-ID für CEO gefunden.");
+                }
+                resolve(sCeoID);
+              })
+              .catch(reject);
+          });
+        },
+
+        /**
+         * Gibt ein Array aller MA-IDs zurück, die die CEO-Stelle (sCeoStelleID) haben.
+         * => Aus "StelleRolle" (wo "Stellen-ID" == sCeoStelleID)
+         */
+        _getAllCEOs: function (sCeoStelleID) {
+          return new Promise((resolve, reject) => {
+            firebase.db
+              .collection("StelleRolle")
+              .where("Stellen-ID", "==", sCeoStelleID)
+              .get()
+              .then((snapshot) => {
+                const aCEOs = [];
+                snapshot.forEach((doc) => {
+                  aCEOs.push(doc.data()["Mitarbeiter-ID"]);
+                });
+                resolve(aCEOs);
+              })
+              .catch(reject);
+          });
+        },
+
+        /**
+         * Gibt ein Array ALLER Mitarbeiter-IDs zurück (aus "DatenZurPerson"),
+         * exkl. sCurrentUser.
+         */
+        _getAllEmployeesButMe: function (sCurrentUser) {
+          return new Promise((resolve, reject) => {
+            firebase.db
+              .collection("DatenZurPerson")
+              .get()
+              .then((snapshot) => {
+                const aAll = [];
+                snapshot.forEach((doc) => {
+                  aAll.push(doc.data()["Mitarbeiter-ID"]);
+                });
+                // exkludiere den Nutzer selbst
+                const aFiltered = aAll.filter((id) => id !== sCurrentUser);
+                resolve(aFiltered);
+              })
+              .catch(reject);
+          });
+        },
+
+        /**
+         * Abteilungsleiter-Logik:
+         * - Abteilungen -> "Abteilungsleiter-ID" == sCurrentUser
+         * - OrganisatorischeZuordnung -> MA-IDs
+         * - exkl. sCurrentUser
+         */
+        _getManagedEmployeesButMe: function (sCurrentUser) {
+          return new Promise((resolve, reject) => {
+            let aDeptIDs = [];
+            let aEmpIDs = [];
+
+            firebase.db
+              .collection("Abteilung")
+              .where("Abteilungsleiter-ID", "==", sCurrentUser)
+              .get()
+              .then((snapshotDept) => {
+                if (snapshotDept.empty) {
+                  // Hat keine Abteilung => keine MA
+                  return resolve([]);
+                }
+                snapshotDept.forEach((doc) => {
+                  aDeptIDs.push(doc.data()["Abteilung-ID"]);
+                });
+
+                return firebase.db
+                  .collection("OrganisatorischeZuordnung")
+                  .where("Abteilung-ID", "in", aDeptIDs)
+                  .get();
+              })
+              .then((snapshotOrg) => {
+                if (!snapshotOrg) {
+                  return; // Keine Abteilungen => fertig
+                }
+                snapshotOrg.forEach((doc) => {
+                  aEmpIDs.push(doc.data()["Mitarbeiter-ID"]);
+                });
+                const aFiltered = aEmpIDs.filter((id) => id !== sCurrentUser);
+                resolve(aFiltered);
+              })
+              .catch(reject);
+          });
+        },
+
+        /**
+         * Lädt eine Map (Mitarbeiter-ID -> {Vorname, Nachname})
+         * aus "DatenZurPerson" für das Array aEmpIDs.
+         */
+        _getPersonenMap: function (aEmpIDs) {
+          return new Promise((resolve, reject) => {
+            if (!aEmpIDs || aEmpIDs.length === 0) {
+              return resolve({});
+            }
+            firebase.db
+              .collection("DatenZurPerson")
+              .where("Mitarbeiter-ID", "in", aEmpIDs)
+              .get()
+              .then((snapshot) => {
+                let oMap = {};
+                snapshot.forEach((doc) => {
+                  const d = doc.data();
+                  const sMID = d["Mitarbeiter-ID"];
+                  oMap[sMID] = {
+                    Vorname: d["Vorname"] || "",
+                    Nachname: d["Nachname"] || "",
+                  };
+                });
+                resolve(oMap);
+              })
+              .catch(reject);
+          });
+        },
+
+        /**
+         * Lädt Abwesenheiten (Status="In Bearbeitung") für die Mitarbeiter-IDs in aEmpIDs
+         * und baut den vollständigen Datensatz inkl. Name (Vorname+Nachname) auf.
+         * Falls nur "Datum" vorhanden, setzen wir Start=End=Datum.
+         * Danach konvertieren wir Start/End in JS-Date, formatieren und schreiben
+         * FormattedStart / FormattedEnd.
+         */
+        _loadAbsencesByEmployees: function (aEmpIDs, oPersonMap) {
+          return new Promise((resolve, reject) => {
+            if (!aEmpIDs || aEmpIDs.length === 0) {
+              return resolve([]);
+            }
+            firebase.db
+              .collection("Abwesenheiten")
+              .where("Mitarbeiter-ID", "in", aEmpIDs)
+              .where("Status", "==", "In Bearbeitung")
+              .get()
+              .then((snapshotAbs) => {
+                if (snapshotAbs.empty) {
+                  return resolve([]);
+                }
+
+                let aResult = [];
+                snapshotAbs.forEach((doc) => {
+                  let oData = doc.data();
+                
+                  oData.docId = doc.id;
+
+                  // Falls "Datum" existiert, aber kein Start-/Enddatum,
+                  // setzen wir Start=End=Datum
+                  if (
+                    !oData["Startdatum"] &&
+                    !oData["Enddatum"] &&
+                    oData["Datum"]
+                  ) {
+                    oData["Startdatum"] = oData["Datum"];
+                    oData["Enddatum"] = oData["Datum"];
+                  }
+
+                  // Name zusammensetzen
+                  const sMID = oData["Mitarbeiter-ID"];
+                  const sVorname = oPersonMap[sMID]?.Vorname || "";
+                  const sNachname = oPersonMap[sMID]?.Nachname || "";
+                  oData["DisplayName"] = (sVorname + " " + sNachname).trim();
+
+                  if (oData["Startdatum"]) {
+                    let oJsDate = this._convertToDate(oData["Startdatum"]);
+                    oData["FormattedStart"] = oJsDate
+                      ? this._formatDate(oJsDate)
+                      : "";
+                  } else {
+                    oData["FormattedStart"] = "";
+                  }
+
+                  if (oData["Enddatum"]) {
+                    let oJsDateEnd = this._convertToDate(oData["Enddatum"]);
+                    oData["FormattedEnd"] = oJsDateEnd
+                      ? this._formatDate(oJsDateEnd)
+                      : "";
+                  } else {
+                    oData["FormattedEnd"] = "";
+                  }
+
+                  aResult.push(oData);
+                });
+                resolve(aResult);
+              })
+              .catch(reject);
+          });
+        },
+
+        /**
+         * Versucht einen Firestore Timestamp oder ein Date-String in ein JS-Date zu wandeln.
+         */
+        _convertToDate: function (vDate) {
+          if (!vDate) {
+            return null;
+          }
+          // Firestore Timestamp => .toDate()
+          if (vDate.toDate) {
+            return vDate.toDate();
+          }
+          // Wenn es ein JS Date oder ein String ist:
+          return new Date(vDate);
+        },
+
+        /**
+         * Formatiert ein JS-Date in dd.MM.yyyy 
+         */
+        _formatDate: function (oDate) {
+          var oFormatter = DateFormat.getDateInstance({
+            pattern: "dd.MM.yyyy",
+          });
+          return oFormatter.format(oDate);
+        },
+
+        /**
+         * Genehmigen
+         */
+        onApproveAbsence: function (oEvent) {
+          var oItemCtx = oEvent.getSource().getBindingContext("absencesModel");
+          var oAbsenceData = oItemCtx.getObject();
+          var sDocId = oAbsenceData.docId;
+
+          if (!sDocId) {
+            MessageToast.show("Fehler: Keine Dokumenten-ID gefunden.");
+            return;
+          }
 
           firebase.db
             .collection("Abwesenheiten")
-            .where("Mitarbeiter-ID", "in", aMitarbeiterIDs)
-            .get()
-            .then((absenceSnapshot) => {
-              var aPromises = [];
-
-              absenceSnapshot.forEach((absenceDoc) => {
-                var oAbsence = absenceDoc.data();
-                var sMitarbeiterID = oAbsence["Mitarbeiter-ID"];
-
-                // Abwesenheitsart-Beschreibung holen
-                var pAbsenceType = firebase.db
-                  .collection("Abwesenheitsart")
-                  .doc(oAbsence["Abwesenheit-ID"])
-                  .get()
-                  .then((absenceTypeDoc) => {
-                    oAbsence["Abwesenheitsart"] =
-                      absenceTypeDoc.data()["Beschreibung"];
-                  });
-
-                // Mitarbeiterdaten holen (Vorname, Nachname)
-                var pEmployeeData = firebase.db
-                  .collection("DatenZurPerson")
-                  .doc(sMitarbeiterID)
-                  .get()
-                  .then((employeeDoc) => {
-                    var oEmployee = employeeDoc.data();
-                    oAbsence["Name"] =
-                      oEmployee["Vorname"] + " " + oEmployee["Nachname"];
-                  });
-
-                aPromises.push(
-                  Promise.all([pAbsenceType, pEmployeeData]).then(() => {
-                    aAbsences.push(oAbsence);
-                  })
-                );
-              });
-
-              Promise.all(aPromises).then(() => {
-                // Ergebnis im Model speichern
-                // Hier könnten wir z.B. /absences im userModel oder eigenem ViewModel ablegen
-                oModel.setProperty("/absences", aAbsences);
-              });
-            })
-            .catch((error) => {
-              console.error("Fehler beim Abrufen der Abwesenheiten:", error);
+            .doc(sDocId)
+            .update({ Status: "Genehmigt" })
+            .then(
+              function () {
+                MessageToast.show("Antrag wurde genehmigt.");
+                this._loadAbsences();
+              }.bind(this)
+            )
+            .catch(function (error) {
+              console.error("Fehler beim Genehmigen:", error);
+              MessageToast.show("Fehler beim Genehmigen.");
             });
         },
 
-        onDetailsPress: function (oEvent) {
-          const oContext = oEvent.getSource().getBindingContext();
-          const oRouter = UIComponent.getRouterFor(this);
-          oRouter.navTo("AbsenceDetailsManager", {
-            MitarbeiterID: oContext.getProperty("MitarbeiterID"),
-          });
+        /**
+         * Ablehnen
+         */
+        onRejectAbsence: function (oEvent) {
+          var oItemCtx = oEvent.getSource().getBindingContext("absencesModel");
+          var oAbsenceData = oItemCtx.getObject();
+          var sDocId = oAbsenceData.docId;
+
+          if (!sDocId) {
+            MessageToast.show("Fehler: Keine Dokumenten-ID gefunden.");
+            return;
+          }
+
+          firebase.db
+            .collection("Abwesenheiten")
+            .doc(sDocId)
+            .update({ Status: "Abgelehnt" })
+            .then(
+              function () {
+                MessageToast.show("Antrag wurde abgelehnt.");
+                this._loadAbsences();
+              }.bind(this)
+            )
+            .catch(function (error) {
+              console.error("Fehler beim Ablehnen:", error);
+              MessageToast.show("Fehler beim Ablehnen.");
+            });
         },
+
         onNavBack: function () {
           sap.ui.core.UIComponent.getRouterFor(this).navTo("Main");
         },
