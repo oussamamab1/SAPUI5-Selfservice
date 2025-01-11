@@ -2,27 +2,27 @@
 <Page title="Meine Abwesenheitsanträge" showNavButton="true" navButtonPress="onNavBack">
 <content>
 
-<Table id="idAbsenceTable" items="{/AbsenceRequests}">
-<columns>
-<Column>
-<Text text="Datum"/>
-</Column>
-<Column>
-<Text text="Abwesenheitsart"/>
-</Column>
-<Column>
-<Text text="Status"/>
-</Column>
-</columns>
-<items>
-<ColumnListItem>
-<cells>
-<Text text="{date}"/>
-<Text text="{absenceType}"/>
-<Text text="{status}"/>
-</cells>
-</ColumnListItem>
-</items>
+<Table id="idAbsenceTable" items="{AbwesenceModel>/entries}">
+    <columns>
+        <Column>
+            <Text text="Datum"/>
+        </Column>
+        <Column>
+            <Text text="Abwesenheitsart"/>
+        </Column>
+        <Column>
+            <Text text="Status"/>
+        </Column>
+    </columns>
+    <items>
+        <ColumnListItem>
+            <cells>
+                <Text text="{AbwesenceModel>Antragsdatum}"/>
+                <Text text="{AbwesenceModel>AbwesenheitsartBeschreibung}"/>
+                <Text text="{AbwesenceModel>Status}"/>
+            </cells>
+        </ColumnListItem>
+    </items>
 </Table>
 <Button id="NewAbsenceRequestButton" text="Neuer Abwesenheitsantrag" press="onNewAbsenceRequest"/>
 </content>

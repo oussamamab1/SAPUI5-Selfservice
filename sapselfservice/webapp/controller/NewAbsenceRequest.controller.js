@@ -5,216 +5,333 @@ sap.ui.define(
 
         return Controller.extend('sapselfservice.controller.NewAbsenceRequest', {
             onInit: function () {
+                this.byId("urlaubkontingent").setText("Laden...");
+                this._loadAbwesenheitsart();
+                this._loadUrlaubkontingent();
+            },
+            
+            _loadAbwesenheitsart: function () {
+                const that=this;
                 firebase.db.collection("Abwesenheitsart")
                     .get()
                     .then((querySnapshot) => {
-                        var abwesenheitart = [];
-                        querySnapshot.forEach((doc) => {
-                            abwesenheitart.push(doc.data());
-                        });
-                        var oModel = new sap.ui.model.json.JSONModel({
-                            Abwesenheitsart: abwesenheitart
-              
-                        });
-                        //Check oModel
-                        console.log(abwesenheitart);
-                        this.getView().setModel(oModel);
-                    }).catch((error) => {
-                        console.error("Error fetching Abwesenheitsart: ", error);
-                        MessageToast.show("Error fetching Abwesenheitsart.");
+                        const abwesenheitart = querySnapshot.docs.map((doc) => doc.data());
+                        const oModel = new sap.ui.model.json.JSONModel({ Abwesenheitsart: abwesenheitart });
+                        that.getView().setModel(oModel);
+                    })
+                    .catch((error) => {
+                        console.error("Fehler beim Abrufen der Abwesenheitsarten: ", error);
                     });
             },
+            
 
+            _loadUrlaubkontingent: function () {
+                console.log("Loading Urlaubkontingent...");
+                var oUserModel = sap.ui.getCore().getModel("userModel");
+                if (!oUserModel) {
+                    sap.m.MessageToast.show("Das Benutzer-Modell ist nicht gesetzt!");
+                    this.getOwnerComponent().getRouter().navTo("login");
+                    return;
+                }
+            
+                var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
+                console.log("Querying Firestore for Mitarbeiter-ID:", mitarbeiterId); 
+                if (!mitarbeiterId) {
+                    console.error("Mitarbeiter-ID is not set or invalid!");
+                    return;
+                }
+                const urlaubkontingentField = this.byId("urlaubkontingent");
+
+                firebase.db
+                    .collection("Urlaubsplan")
+                    .where("Mitarbeiter-ID", "==", mitarbeiterId)
+                    .where("Status", "==", "Genehmigt")
+                    .get()
+                    .then((querySnapshot) => {
+                        console.log("Query snapshot:", querySnapshot);
+                        if (querySnapshot.empty) {
+                            urlaubkontingentField.setText(20); // Standardwert
+                            return;
+                        }
+            
+                        const seineurlaubsplan = querySnapshot.docs.map((doc) => doc.data());
+                        const neuesterUrlaubsplan = seineurlaubsplan.sort((a, b) => {
+                            const dateA = new Date(a.Antragsdatum).getTime();
+                            const dateB = new Date(b.Antragsdatum).getTime();
+                            return dateB - dateA;
+                        })[0];
+            
+                        const urlaubkontingent = parseFloat(neuesterUrlaubsplan?.UrlaubKontingent || 0);
+                        const geplanterUrlaubstage = parseFloat(neuesterUrlaubsplan?.geplanterUrlaubstage || 0);
+                        const verbleibenderUrlaub = urlaubkontingent - geplanterUrlaubstage;
+
+                        urlaubkontingentField.setText(!isNaN(verbleibenderUrlaub) ? verbleibenderUrlaub : 20);
+                    }).catch((error) => {
+                        console.error("Error fetching UrlaubKontingent:", error);
+                        this.byId("urlaubkontingent").setText(20); // Default fallback on error
+                    });
+            },
+            
+            
+            clearInputFields: function (controlIds) {
+                const oView = this.getView();
+                controlIds.forEach((controlId) => {
+                    const control = oView.byId(controlId);
+                    if (control) {
+                        if (control.setValue) {
+                            control.setValue(""); // Clear input value (e.g., DatePicker, Input)
+                        }
+                        if (control.setSelected) {
+                            control.setSelected(false); // Clear selection (e.g., CheckBox)
+                        }
+                    } else {
+                        console.warn(`Control with ID ${controlId} not found.`);
+                    }
+                });
+            },            
+            
             onradioButtonChange: function (oEvent) {
                 const selectedIndex = oEvent.getParameter("selectedIndex");
                 const selectedRadioButton = selectedIndex === 0 ? "moreThanOneDay" : "oneDayOrLess";
                 this.getView().getModel().setProperty("/selectedRadioButton", selectedRadioButton);
+                this.clearInputFields([
+                    "datepicker",        
+                    "beginnTimePicker",  
+                    "endTimePicker",    
+                    "durationInput",     
+                    "Zeitraum",         
+                    "durationTagInput",  
+                    "approverInput",     
+                    "noteTextArea"      
+                ]);
             },
             
 
-            onAbsenceTypeChange: function (oEvent) {
-                var selectedItem = oEvent.getParameter("selectedItem");
-                if (selectedItem) {
-                    var selectedKey = selectedItem.getKey();
-                    var selectedText = selectedItem.getText();
-                    console.log('Ausgewählte Abwesenheitsart:', selectedKey, selectedText);
-
-                // console.log('Ausgewählte Abwesenheitsart:', selectedText);
-
-                if (selectedText === 'Urlaub') {
-                    // Zeitfelder ausblenden
-                    oView.byId('startTimeLabel').setVisible(false);
-                    oView.byId('startTimePicker').setVisible(false);
-                    oView.byId('endTimeLabel').setVisible(false);
-                    oView.byId('endTimePicker').setVisible(false);
-                    oView.byId('durationLabel').setVisible(false);
-                    oView.byId('durationInput').setVisible(false);
-
-                    // Urlaubstage anzeigen
-                    oView.byId('endDateLabel').setVisible(true);
-                    oView.byId('endDatePicker').setVisible(true);
-                    oView.byId('vacationDaysLabel').setVisible(true);
-                    oView.byId('vacationDaysInput').setVisible(true);
-                } else if (selectedText === 'Teleworking' || selectedText === 'Teleworking (Wochenende)') {
-                    // Zeitfelder anzeigen
-                    oView.byId('startTimeLabel').setVisible(true);
-                    oView.byId('startTimePicker').setVisible(true);
-                    oView.byId('endTimeLabel').setVisible(true);
-                    oView.byId('endTimePicker').setVisible(true);
-                    oView.byId('durationLabel').setVisible(true);
-                    oView.byId('durationInput').setVisible(true);
-
-                    // Urlaubstage ausblenden
-                    oView.byId('endDateLabel').setVisible(false);
-                    oView.byId('endDatePicker').setVisible(false);
-                    oView.byId('vacationDaysLabel').setVisible(false);
-                    oView.byId('vacationDaysInput').setVisible(false);
-                }
-            } else {
-                console.log('No item selected');
-            }},
-
-            onDateChange: function () {
-                var oView = this.getView();
-                var sDate = oView.byId('datePicker').getValue();
-                var sEndDate = oView.byId('endDatePicker').getValue();
-
-                if (sDate && sEndDate) {
-                    var s_date_day = sDate.substring(3, 5);
-                    var s_date_month = sDate.substring(0, 2);
-                    var s_date_year = sDate.substring(6);
-                    var startDayFormat = '20' + s_date_year + '-' + s_date_month + '-' + s_date_day;
-                    var startDate = new Date(startDayFormat.toString());
-
-                    var e_date_day = sEndDate.substring(3, 5);
-                    var e_date_month = sEndDate.substring(0, 2);
-                    var e_date_year = sEndDate.substring(6);
-                    var endDayFormat = '20' + e_date_year + '-' + e_date_month + '-' + e_date_day;
-                    var endDate = new Date(endDayFormat.toString());
-
-                    var totalDays = 0;
-
-                    for (var d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                        var chosenDay = d.getDay();
-                        // Zähle nur Tage, die keine Wochenendtage sind (Montag bis Freitag)
-                        if (chosenDay !== 0 && chosenDay !== 6) {
-                            totalDays++;
-                        }
-                    }
-
-                    console.log('Urlaubstage:', totalDays);
-
-                    // Urlaubstage im UI anzeigen
-                    oView.byId('vacationDaysInput').setValue(totalDays.toString());
-
-                    // Kontingent überprüfen
-                    var remainingQuota = parseInt(oView.byId('quotaInput').getValue(), 10);
-                    if (totalDays > remainingQuota) {
-                        MessageToast.show('Ihr Urlaubskontingent reicht nicht aus. Verfügbare Tage: ' + remainingQuota);
+            onDateChange: function (oEvent) {
+                const oSource = oEvent.getSource();
+                const sSourceId = oSource.getId();
+                if (sSourceId.includes("Zeitraum")) {
+                    // Handle the case for "Mehr als ein Tag"
+                    const oStartDate = oSource.getDateValue(); 
+                    const oEndDate = oSource.getSecondDateValue(); 
+            
+                    if (oStartDate && oEndDate) {
+                        const iDuration = this.calculateWeekdays(oStartDate, oEndDate);
+                        console.log("Dauer in Tagen:", iDuration);
+                        this.byId("durationTagInput").setValue(iDuration);
+                    } else {
+                        this.byId("durationTagInput").setValue("");
                     }
                 }
             },
+            
+            calculateWeekdays: function (startDate, endDate) {
+                let weekdaysCount = 0;
+                const currentDate = new Date(startDate);
+            
+                while (currentDate <= endDate) {
+                    const dayOfWeek = currentDate.getDay();
+                    // 0 = Sunday, 6 = Saturday
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                        weekdaysCount++;
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                return weekdaysCount;
+            },
+
             onTimeChange: function () {
-                var oView = this.getView();
-                var sStartTime = oView.byId('startTimePicker').getValue();
-                var sEndTime = oView.byId('endTimePicker').getValue();
-
-                if (sStartTime && sEndTime) {
-                    // Uhrzeit in 24-Stunden-Format umwandeln
-                    var startTimeIn24Hr = this.convertTo24HourFormat(sStartTime);
-                    var endTimeIn24Hr = this.convertTo24HourFormat(sEndTime);
-
-                    // Berechnung der gearbeiteten Zeit
-                    var workedHours =
-                        parseInt(endTimeIn24Hr.substring(0, 2)) - parseInt(startTimeIn24Hr.substring(0, 2));
-                    var workedMinutes =
-                        parseInt(endTimeIn24Hr.substring(3, 5)) - parseInt(startTimeIn24Hr.substring(3, 5));
-                    if (workedMinutes < 0) {
-                        workedHours -= 1;
-                        workedMinutes = 60 + workedMinutes;
+                const sBeginnTime = this.byId("beginnTimePicker").getValue();
+                const sEndTime = this.byId("endTimePicker").getValue();
+        
+                if (sBeginnTime && sEndTime) {
+                    try {
+                        var [startHours, startMinutes] = sBeginnTime.split(":").map(Number);
+                        var [endHours, endMinutes] = sEndTime.split(":").map(Number);
+            
+                        if (isNaN(startHours) || isNaN(startMinutes) || isNaN(endHours) || isNaN(endMinutes)) {
+                            throw new Error("Ungültiges Zeitformat.");
+                        }
+            
+                        var oBeginnTime = new Date();
+                        var oEndTime = new Date();
+            
+                        oBeginnTime.setHours(startHours, startMinutes, 0, 0);
+                        oEndTime.setHours(endHours, endMinutes, 0, 0);
+            
+                        if (isNaN(oBeginnTime.getTime()) || isNaN(oEndTime.getTime())) {
+                            throw new Error("Fehler beim Erstellen der Zeiten.");
+                        }
+            
+                        console.log("Beginnzeit:", oBeginnTime);
+                        console.log("Endzeit:", oEndTime);
+            
+                        if (oEndTime < oBeginnTime) {
+                            MessageToast.show("Endzeit kann nicht vor der Beginnzeit liegen.");
+                            console.error("Fehler: Endzeit ist vor Beginnzeit.");
+                            return;
+                        }
+            
+                        var duration = (oEndTime - oBeginnTime) / (1000 * 60 * 60);
+                        console.log("Dauer in Stunden:", duration);
+            
+                        this.byId("durationInput").setValue(duration.toFixed(2));
+                    } catch (error) {
+                        MessageToast.show(error.message || "Fehler bei der Berechnung der Dauer.");
+                        console.error(error.message);
                     }
-
-                    // Ergebnis anzeigen
-                    var durationString = `${workedHours.toString().padStart(2, '0')}:${workedMinutes
-                        .toString()
-                        .padStart(2, '0')}`;
-                    oView.byId('durationInput').setValue(durationString);
+                } else {
+                    MessageToast.show("Bitte sowohl Beginn- als auch Endzeit eingeben.");
+                    console.error("Fehlende Werte in Beginn- oder Endzeit.");
                 }
             },
-
-            convertTo24HourFormat: function (time) {
-                if (!time) return '';
-                let [hours, minutes] = time.replace(/PM|AM$/i, '').split(':');
-                hours = parseInt(hours, 10);
-                if (/PM$/i.test(time) && hours !== 12) {
-                    hours += 12; // PM -> 12 Stunden hinzufügen
-                } else if (/AM$/i.test(time) && hours === 12) {
-                    hours = 0; // 12 AM -> Mitternacht
-                }
-                return `${hours.toString().padStart(2, '0')}:${minutes}`;
-            },
+                  
 
             onSaveRequest: function () {
-                var oView = this.getView();
-                var oSelectedType = oView.byId('absenceTypeSelect').getSelectedItem();
-                var sDate = oView.byId('datePicker').getValue();
-                var sEndDate = oView.byId('endDatePicker').getValue();
-                var sStartTime = oView.byId('startTimePicker').getValue();
-                var sEndTime = oView.byId('endTimePicker').getValue();
-                var calculatedDays = parseInt(oView.byId('vacationDaysInput').getValue(), 10);
-                var remainingQuota = parseInt(oView.byId('quotaInput').getValue(), 10);
-                var sNote = oView.byId('noteTextArea').getValue();
-
-                if (oSelectedType && oSelectedType.getText() === 'Urlaub') {
-                    if (!sDate || !sEndDate) {
-                        MessageToast.show('Bitte Start- und Enddatum eingeben!');
-                        return;
-                    }
-
-                    if (calculatedDays > remainingQuota) {
-                        MessageToast.show('Ihr Urlaubskontingent reicht nicht aus. Verfügbare Tage: ' + remainingQuota);
-                        return;
-                    }
-
-                    MessageToast.show('Urlaub erfolgreich beantragt. Verbraucht: ' + calculatedDays + ' Tage.');
+                const oView = this.getView();
+                const oUserModel = sap.ui.getCore().getModel("userModel");
+            
+                // Check user model
+                if (!oUserModel) {
+                    sap.m.MessageToast.show("Das Benutzer-Modell ist nicht gesetzt!");
+                    this.getOwnerComponent().getRouter().navTo("login");
                     return;
                 }
-                var s_date_day = sDate.substring(3, 5);
-                var s_date_month = sDate.substring(0, 2);
-                var s_date_year = sDate.substring(6);
-                var dayFormat = '20' + s_date_year + '-' + s_date_month + '-' + s_date_day;
-                var chosenDay = new Date(dayFormat.toString()).getDay();
-
-                console.log(chosenDay);
-
-                // wenn "Teleworking" als Abwesenheitsart ausgewählt ist
-                if (oSelectedType && oSelectedType.getText() === 'Teleworking') {
-                    if (chosenDay === 0 || chosenDay === 6) {
-                        MessageToast.show(
-                            "Wenn Sie am Wochenende gearbeitet haben, bitte bei Art der Abwesenheit 'Teleworking Wochenende' auswählen."
-                        );
-                        return;
-                    }
-                }
-                // wenn "Teleworking(wochenende)" als Abwesenheitsart ausgewählt ist
-                if (oSelectedType && oSelectedType.getText() === 'Teleworking (Wochenende)') {
-                    if (chosenDay !== 0 && chosenDay !== 6) {
-                        MessageToast.show(
-                            "Wenn Sie von Montag bis Freitag gearbeitet haben, bitte bei Art der Abwesenheit 'Teleworking' auswählen."
-                        );
-                        return;
-                    }
-                }
-                // Bedingung: Alle Felder ausgefüllt
-                if (!sDate || !oSelectedType || !sStartTime || !sEndTime) {
-                    MessageToast.show('Bitte alle erforderlichen Felder ausfüllen!');
+            
+                const mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
+                const anstragdatum = new Date();
+            
+                const oSelectedType = oView.byId("absenceTypeSelect").getSelectedItem();
+                const sDate = oView.byId("datepicker").getValue();
+                const sZeitraum = oView.byId("Zeitraum").getValue();
+                const oStartDate = oView.byId("Zeitraum").getDateValue();
+                const oEndDate = oView.byId("Zeitraum").getSecondDateValue();
+                const sStartTime = oView.byId("beginnTimePicker").getValue();
+                const sEndTime = oView.byId("endTimePicker").getValue();
+                const calculatedDays = oView.byId("durationTagInput").getValue();
+                const calculatedHours = oView.byId("durationInput").getValue();
+                const urlaubkontingent = Number(oView.byId("urlaubkontingent").getText());
+                const sNote = oView.byId("noteTextArea").getValue();
+            
+                if (!oSelectedType || 
+                    (!sZeitraum && (!sDate || !sStartTime || !sEndTime))) {
+                    MessageToast.show("Bitte alle erforderlichen Felder ausfüllen!");
                     return;
                 }
 
-                MessageToast.show('Abwesenheitsantrag gespeichert!');
+                let parsedDate;
+                if (!sZeitraum && sDate) {
+                    const [day, month, year] = sDate.split("/").map(Number);
+                    parsedDate = new Date(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+
+                    if (isNaN(parsedDate.getTime())) {
+                        console.error("Invalid sDate value:", sDate);
+                        MessageToast.show("Ungültiges Datum. Bitte überprüfen Sie die Eingabe.");
+                        return;
+                    }
+                }
+                const absenceType = oSelectedType.getText();
+            
+                // Validate Absence Type
+                const chosenDay = new Date(sDate.split(".").reverse().join("-")).getDay(); // 0 = Sunday, 6 = Saturday
+                if (absenceType === "Teleworking" && (chosenDay === 0 || chosenDay === 6)) {
+                    MessageToast.show("Für Wochenendarbeit bitte 'Teleworking Wochenende' auswählen.");
+                    return;
+                }
+                if (absenceType === "Teleworking (Wochenende)" && (chosenDay !== 0 && chosenDay !== 6)) {
+                    MessageToast.show("Für Wochentagsarbeit bitte 'Teleworking' auswählen.");
+                    return;
+                }
+            
+                // Check Urlaub Kontingent
+                if (absenceType === "Urlaub" && calculatedDays > urlaubkontingent) {
+                    MessageToast.show(`Ihr Urlaubskontingent reicht nicht aus. Verfügbare Tage: ${urlaubkontingent}`);
+                    return;
+                }
+            
+                const startOfDay = new Date(anstragdatum).setHours(0, 0, 0, 0);
+                const endOfDay = new Date(anstragdatum).setHours(23, 59, 59, 999);
+            
+                const collectionName = absenceType === "Urlaub" ? "Urlaubsplan" : "Abwesenheiten";
+                const type = absenceType === "Urlaub" ? "Urlaub" : "Teleworking";
+            
+                // Handle Firebase Request
+                firebase.db
+                    .collection(collectionName)
+                    .where("Mitarbeiter-ID", "==", mitarbeiterId)
+                    .where("Antragsdatum", ">=", firebase.Timestamp.fromDate(new Date(startOfDay)))
+                    .where("Antragsdatum", "<=", firebase.Timestamp.fromDate(new Date(endOfDay)))
+                    .get()
+                    .then((querySnapshot) => {
+                        const seineurlaubsplan = querySnapshot.docs.map((doc) => doc.data());
+                        const formattedDate = `${anstragdatum.getFullYear()}-${String(anstragdatum.getMonth() + 1).padStart(2, "0")}-${String(anstragdatum.getDate()).padStart(2, "0")}`;
+                        const docID = `${formattedDate}_${seineurlaubsplan.length + 1}_${mitarbeiterId}`;
+            
+                        // Prepare Request Data
+                        const requestData = {
+                            "Antragsdatum": anstragdatum,
+                            "Mitarbeiter-ID": mitarbeiterId,
+                            "Abwesenheit-ID": oSelectedType.getKey(),
+                            "Kommentare": sNote,
+                            "Status": "In Bearbeitung",
+                            ...(type === "Urlaub" && sZeitraum && {
+                                "UrlaubKontingent": urlaubkontingent,
+                                "geplanterUrlaubstage": calculatedDays,
+                            }),
+                            ...(type === "Urlaub" && sDate && {
+                                "UrlaubKontingent": urlaubkontingent,
+                                "geplanterUrlaubstage": calculatedHours > 4 ? 1 : 0.5,
+                            }),
+                            ...(type === "Teleworking" && sZeitraum && {
+                                "geplanterArbeitstage": calculatedDays,
+                            }),
+                            ...(type === "Teleworking" && sDate && {
+                                "Arbeitstunden": calculatedHours,
+                            }),
+                            ...(sZeitraum ? 
+                                {
+                                    "Startdatum": oStartDate,
+                                    "Enddatum": oEndDate,
+                                }
+                                : {
+                                    "Datum": firebase.Timestamp.fromDate(parsedDate),
+                                    "Startzeit": sStartTime,
+                                    "Endzeit": sEndTime,
+                                }),
+                        };
+            
+                        return firebase.db
+                            .collection(collectionName)
+                            .doc(docID)
+                            .set(requestData)
+                            .then(() => {
+                                MessageToast.show(
+                                    `${absenceType} erfolgreich beantragt. ${
+                                        absenceType === "Urlaub" ? `Verbraucht: ${calculatedDays} Tage.` : ""
+                                    }`
+                                );
+                            });
+                    })
+                    .catch((error) => {
+                        console.error(`Fehler beim Speichern des ${collectionName}:`, error);
+                        MessageToast.show(`Fehler beim Speichern des ${collectionName}.`);
+                    });
             },
+            
+            
             onCancelRequest: function () {
                 try {
+                    var oView = this.getView();
+                    this.clearInputFields([
+                        "datepicker",        
+                        "beginnTimePicker",  
+                        "endTimePicker",    
+                        "durationInput",     
+                        "Zeitraum",         
+                        "durationTagInput",  
+                        "approverInput",     
+                        "noteTextArea"      
+                    ]);
                     var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
                     oRouter.navTo('absenceOverview'); // Navigiere zurück zur Startseite
                     console.log('geklickt');
