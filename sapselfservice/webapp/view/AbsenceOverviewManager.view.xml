@@ -1,63 +1,80 @@
 <mvc:View
     controllerName="sapselfservice.controller.AbsenceOverviewManager"
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m"
-    xmlns:core="sap.ui.core">
+    xmlns="sap.m">
 
-    <App id="app2">
-        <Page
-            id="absenceOverviewPage"
-            title="Abwesenheiten verwalten"
-            showNavButton="true"
-            navButtonPress="onNavBack">
-            <content>
-                <Table
-                    id="absenceTable"
-                    inset="false"
-                    items="{
-                        path: '/absences'
-                    }">
-                    <columns>
-                        <Column>
-                            <Text text="Mitarbeiter-ID" />
-                        </Column>
-                        <Column>
-                            <Text text="Name" />
-                        </Column>
-                        <Column>
-                            <Text text="Abwesenheitsart" />
-                        </Column>
-                        <Column>
-                            <Text text="Startdatum" />
-                        </Column>
-                        <Column>
-                            <Text text="Enddatum" />
-                        </Column>
-                        <Column>
-                            <Text text="Status" />
-                        </Column>
-                        <Column>
-                            <Text text="Aktion" />
-                        </Column>
-                    </columns>
-                    <items>
-                        <ColumnListItem>
-                            <cells>
-                                <Text text="{MitarbeiterID}" />
-                                <Text text="{Name}" />
-                                <Text text="{Abwesenheitsart}" />
-                                <Text text="{Startdatum}" />
-                                <Text text="{Enddatum}" />
-                                <Text text="{Status}" />
+    <App>
+        <Page title="Abwesenheiten genehmigen" showNavButton="true"
+        navButtonPress=".onNavBack">
+            <Table
+                items="{absencesModel>/Absences}"
+                noData="{absencesModel>/noDataMessage}">
+                <headerToolbar>
+                    <Toolbar>
+                        <Title text="Abwesenheitsanträge (in Bearbeitung)" />
+                    </Toolbar>
+                </headerToolbar>
+
+                <columns>
+                    <!-- Name (Vorname + Nachname) -->
+                    <Column>
+                        <Text text="Name" />
+                    </Column>
+
+                    <!-- Startdatum -->
+                    <Column>
+                        <Text text="Startdatum" />
+                    </Column>
+
+                    <!-- Enddatum -->
+                    <Column>
+                        <Text text="Enddatum" />
+                    </Column>
+
+                    <!-- Status -->
+                    <Column>
+                        <Text text="Status" />
+                    </Column>
+
+                    <!-- Aktionen -->
+                    <Column>
+                        <Text text="Aktionen" />
+                    </Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem>
+                        <cells>
+                            <!-- DisplayName -->
+                            <ObjectIdentifier title="{absencesModel>DisplayName}" />
+
+                            <!-- Formatiertes Startdatum -->
+                            <ObjectIdentifier title="{absencesModel>FormattedStart}" />
+
+                            <!-- Formatiertes Enddatum -->
+                            <ObjectIdentifier title="{absencesModel>FormattedEnd}" />
+
+                            <!-- Status -->
+                            <ObjectStatus text="{absencesModel>Status}" />
+
+                            <!-- Genehmigen / Ablehnen -->
+                            <HBox>
                                 <Button
-                                    text="Details"
-                                    press="onDetailsPress"
-                                    type="Transparent" />
-                            </cells>
-                        </ColumnListItem>
-                    </items>
-                </Table>
-            </content>
+                                    text="Genehmigen"
+                                    icon="sap-icon://accept"
+                                    press=".onApproveAbsence" />
+                                <Button
+                                    text="Ablehnen"
+                                    icon="sap-icon://decline"
+                                    class="sapUiSmallMarginBegin"
+                                    press=".onRejectAbsence" />
+                            </HBox>
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+
+            
         </Page>
     </App>
 </mvc:View>

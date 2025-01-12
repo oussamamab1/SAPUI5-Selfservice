@@ -3,48 +3,65 @@ sap.ui.define(
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
     "sap/ui/core/UIComponent",
+    "sap/m/Dialog",
+    "sap/m/Button",
+    "sap/m/Text",
     "sapselfservice/backend/firebase",
   ],
-  function (Controller, MessageToast, UIComponent, firebase) {
+  function (
+    Controller,
+    MessageToast,
+    UIComponent,
+    Dialog,
+    Button,
+    Text,
+    firebase
+  ) {
     "use strict";
 
     return Controller.extend("sapselfservice.controller.Main", {
-      /**
-       * Lifecycle-Methode: Initialisierung der View
-       */
       onInit: async function () {
-        // Prüfen, ob das userModel vorhanden ist
+        // 1) userModel vorhanden?
         var oModel = sap.ui.getCore().getModel("userModel");
-        if (!oModel || !oModel.getProperty("/Mitarbeiter-ID")) {
-          console.error("Mitarbeiter-ID nicht gefunden im userModel.");
-          return;
+        if (!oModel) {
+          // Session check
+          var sessionId = sessionStorage.getItem("currentSessionId");
+          if (sessionId) {
+            var userDataString = sessionStorage.getItem(sessionId);
+            if (userDataString) {
+              try {
+                var userData = JSON.parse(userDataString);
+                var oSessionModel = new sap.ui.model.json.JSONModel(userData);
+                sap.ui.getCore().setModel(oSessionModel, "userModel");
+                oModel = oSessionModel;
+              } catch (e) {
+                console.error("Fehler beim Parsen der Session:", e);
+              }
+            }
+          }
+          if (!oModel || !oModel.getProperty("/Mitarbeiter-ID")) {
+            // keine Session => login
+            this.getOwnerComponent().getRouter().navTo("login");
+            return;
+          }
         }
 
+        // Weiter
         try {
-          // Asynchron abfragen, ob der User eine Führungskraft ist
           const isManager = await this._checkIfManager(oModel);
-
-          // Sichtbarkeit des GenericTiles entsprechend setzen
           const oTile = this.getView().byId("id.MangerGenericTile");
-          oTile.setVisible(isManager);
-
-          // Optional eine kleine Meldung zeigen, wenn kein Manager
-          if (!isManager) {
-            MessageToast.show("Kein Manager");
+          if (oTile) {
+            oTile.setVisible(isManager);
           }
+          
         } catch (error) {
-          // Hier landen Fehler 
           MessageToast.show("Fehler beim Abrufen der Rolle.");
           console.error("Error fetching roles: ", error);
         }
       },
 
-      /**
-       * Hilfsfunktion: Prüft, ob der aktuelle Benutzer eine Führungskraft ist
-       */
       _checkIfManager: async function (oModel) {
         try {
-          // 1. Rollen-IDs für den angegebenen Mitarbeiter holen
           const stelleRolleSnapshot = await firebase.db
             .collection("StelleRolle")
             .where(
@@ -55,86 +72,108 @@ sap.ui.define(
             .get();
 
           if (stelleRolleSnapshot.empty) {
-            // Keine Rolle gefunden => kein Manager
             return false;
           }
 
-          // 2. Rollen-IDs extrahieren
           const rollenIds = stelleRolleSnapshot.docs.map(
             (doc) => doc.data()["Rollen-ID"]
           );
 
-          // 3. Rollen-Dokumente mit "in"-Abfrage (max. 10 IDs) holen
           const rolleSnapshot = await firebase.db
             .collection("Rolle")
             .where("Rollen-ID", "in", rollenIds)
             .get();
 
-          // 4. Prüfen, ob Rolle "Führungskraft" vorhanden ist
           return rolleSnapshot.docs.some(
             (doc) => doc.data().Rollenbezeichnung === "Führungskraft"
           );
         } catch (error) {
           console.error("Fehler bei der Firestore-Abfrage:", error);
-          throw error; // Fehler an onInit weitergeben
+          throw error;
         }
       },
+      onLogoutPress: function () {
+    var oDialog = new Dialog({
+        title: "Abmelden",
+        type: "Message",
+        content: new Text({
+            text: "Möchten Sie sich wirklich abmelden?",
+        }),
+        // bei der Bestätigung wird die Session gelöscht und der User zurück zur Login-Seite navigiert
+        beginButton: new Button({
+            text: "Ja",
+            type: "Reject",
+            press: function () {
+                // 1) Session-Einträge entfernen
+                var sessionId = sessionStorage.getItem("currentSessionId");
+                if (sessionId) {
+                  // Userdaten entfernen
+                  sessionStorage.removeItem(sessionId);
+                  // Session-ID selbst entfernen
+                  sessionStorage.removeItem("currentSessionId");
+                }
 
-     
+                // 2) userModel entfernen, falls gewünscht
+                sap.ui.getCore().setModel(null, "userModel");
+
+                // 3) Zur Login-Route navigieren
+                this.getOwnerComponent().getRouter().navTo("login");
+
+                // 4) Dialog schließen
+                oDialog.close();
+            }.bind(this),
+        }),
+        // bei der Ablehnung wird der Dialog geschlossen
+        endButton: new Button({
+            text: "Nein",
+            press: function () {
+                oDialog.close();
+            },
+        }),
+    });
+
+    oDialog.open();
+},
+
       onGenericTileTimeTrackingPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("TimeTracking");
+        UIComponent.getRouterFor(this).navTo("TimeTracking");
         MessageToast.show("Zeiterfassung öffnen...");
       },
 
       onGenericTileEmployeeDataPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("AbsenceOverviewManager");
+        UIComponent.getRouterFor(this).navTo("AbsenceOverviewManager");
       },
 
       onGenericTileTrainingPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("Modules");
+        UIComponent.getRouterFor(this).navTo("Modules");
       },
 
       onGenericTileAbsencesPress: function () {
         MessageToast.show("Abwesenheitsanträge öffnen...");
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("absenceOverview");
+        UIComponent.getRouterFor(this).navTo("absenceOverview");
       },
 
       onGenericTilePayStatementsPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("PayStatements");
+        UIComponent.getRouterFor(this).navTo("PayStatements");
       },
 
-   
-
       onGenericTileProfilePress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("profile");
+        UIComponent.getRouterFor(this).navTo("profile");
       },
 
       onGenericTileEmployeeDirectoryPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("EmployeeDirectory");
+        UIComponent.getRouterFor(this).navTo("EmployeeDirectory");
       },
 
       onGenericTileTaxStatementsPress: function () {
         MessageToast.show("Lohnsteuerbescheinigungen anzeigen...");
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("TaxStatements");
+        UIComponent.getRouterFor(this).navTo("TaxStatements");
       },
-
-      
 
       onGenericTileFamilyMembersPress: function () {
         MessageToast.show("Familienmitglieder anzeigen...");
-         var oRouter = UIComponent.getRouterFor(this);
-         oRouter.navTo("FamilyMembers");
+        UIComponent.getRouterFor(this).navTo("FamilyMembers");
       },
-
-      
     });
   }
 );

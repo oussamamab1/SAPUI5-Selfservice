@@ -10,6 +10,35 @@ sap.ui.define(
 
     return Controller.extend("sapselfservice.controller.EmployeeDirectory", {
       onInit: function () {
+        // Check if userModel exists
+        var oUserModel = sap.ui.getCore().getModel("userModel");
+        if (!oUserModel) {
+          this._restoreSessionOrGoLogin();
+        } else {
+          this._continueInit();
+        }
+      },
+
+      _restoreSessionOrGoLogin: function () {
+        var sessionId = sessionStorage.getItem("currentSessionId");
+        if (sessionId) {
+          var userDataString = sessionStorage.getItem(sessionId);
+          if (userDataString) {
+            try {
+              var userData = JSON.parse(userDataString);
+              var oSessionModel = new JSONModel(userData);
+              sap.ui.getCore().setModel(oSessionModel, "userModel");
+              this._continueInit();
+              return;
+            } catch (e) {
+              console.error("Fehler beim Parsen der Session-Daten:", e);
+            }
+          }
+        }
+        sap.ui.core.UIComponent.getRouterFor(this).navTo("login");
+      },
+
+      _continueInit: function () {
         this._loadEmployeeData();
       },
 
@@ -131,6 +160,7 @@ sap.ui.define(
         }
         return `${sName || "Unbekannt"} (${sPhone || "Keine Nummer"})`;
       },
+
       onNavBack: function () {
         sap.ui.core.UIComponent.getRouterFor(this).navTo("Main");
       },
