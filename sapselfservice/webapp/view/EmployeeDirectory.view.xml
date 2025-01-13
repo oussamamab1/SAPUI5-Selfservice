@@ -17,7 +17,7 @@
                 text="Alle anzeigen"
                 press=".onResetSearch"
                 width="auto"
-                style="Transparent"
+               
             />
 
             <Table id="idEmployeeTable" items="{employees>/}">
