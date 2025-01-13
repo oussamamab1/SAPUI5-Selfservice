@@ -11,25 +11,36 @@ sap.ui.define(
 
     return Controller.extend("sapselfservice.controller.Login", {
       onInit: function () {
-        // Wenn im SessionStorage ein sessionId liegt, Userdaten laden
+        // Beim Initialisieren prüfen wir, ob eine Session-ID vorhanden ist
         var sessionId = sessionStorage.getItem("currentSessionId");
         if (sessionId) {
-          var userData = JSON.parse(sessionStorage.getItem(sessionId));
-          if (userData) {
-            // Modell auf den Core setzen
-            var oUserModel = new JSONModel(userData);
-            sap.ui.getCore().setModel(oUserModel, "userModel");
+          // Versuchen, die Userdaten für diese Session zu laden
+          var userDataString = sessionStorage.getItem(sessionId);
+          if (userDataString) {
+            try {
+              var userData = JSON.parse(userDataString);
+              // Userdaten ins Model laden
+              var oUserModel = new JSONModel(userData);
+              sap.ui.getCore().setModel(oUserModel, "userModel");
 
-            // Navigation zu Main
-            this.getOwnerComponent().getRouter().navTo("Main");
-            return;
+              // Direkt weiter zum Main-View
+              this.getOwnerComponent().getRouter().navTo("Main");
+              return;
+            } catch (e) {
+              console.error("Fehler beim Parsen der Session-Userdaten:", e);
+            }
           } else {
-            console.error("User data not found for session ID:", sessionId);
+            console.error(
+              "Keine Userdaten in sessionStorage für die Session-ID:",
+              sessionId
+            );
           }
         }
 
-        // Keine Session => Bleib in login
-        console.log("No (valid) session ID found. Stopping at login page.");
+        // Keine Session gefunden oder ungültig => auf Login-Seite bleiben
+        console.log(
+          "Keine (gültige) Session-ID gefunden. Bleibe auf Login-Seite."
+        );
       },
 
       onLoginpress: async function () {
@@ -37,9 +48,9 @@ sap.ui.define(
         var sUserId = oView.byId("uidID").getValue();
         var sPassword = oView.byId("passwID").getValue();
 
-        // Check inputs
+        // Check Inputs
         if (!sUserId || !sPassword) {
-          MessageBox.error("Please enter both User ID and Password.");
+          MessageBox.error("Bitte Benutzername und Passwort eingeben.");
           return;
         }
 
@@ -53,9 +64,8 @@ sap.ui.define(
             .where("Passwort", "==", sPassword);
 
           const LoginDoc = await LoginQuery.get();
-
           if (LoginDoc.empty) {
-            MessageBox.error("User not found or incorrect password.");
+            MessageBox.error("Benutzer nicht gefunden oder falsches Passwort.");
             return;
           }
 
@@ -63,9 +73,8 @@ sap.ui.define(
           LoginDoc.forEach((doc) => {
             MitarbeiterID = doc.data()["Mitarbeiter-ID"];
           });
-
           if (!MitarbeiterID) {
-            MessageBox.error("Mitarbeiter-ID not found for this user.");
+            MessageBox.error("Keine Mitarbeiter-ID gefunden.");
             return;
           }
 
@@ -76,7 +85,7 @@ sap.ui.define(
             .get();
 
           if (DatenDoc.empty) {
-            MessageBox.error("No personal data found for this user.");
+            MessageBox.error("Keine Personaldaten gefunden.");
             return;
           }
           var MitarbeiterDaten = DatenDoc.docs[0].data();
@@ -90,14 +99,13 @@ sap.ui.define(
           ).get();
 
           if (BankDoc.empty) {
-            MessageBox.error("No bank data found for this user.");
+            MessageBox.error("Keine Bankdaten gefunden.");
             return;
           }
           var BankDaten = BankDoc.docs[0].data();
 
-          // 4) Adressen
+          // 4) Anschriften
           const AnschriftenRef = firebase.db.collection("Anschriften");
-          // Statt `.get()` plus Schleife machen wir direkt:
           const AdresseDoc = await AnschriftenRef.where(
             "Mitarbeiter-ID",
             "==",
@@ -106,27 +114,28 @@ sap.ui.define(
 
           if (AdresseDoc.empty) {
             MessageBox.error(
-              "No address data found for this user. " + MitarbeiterID
+              "Keine Anschrift gefunden für Benutzer: " + MitarbeiterID
             );
             return;
           }
           var AdresseDaten = AdresseDoc.docs[0].data();
 
-          // 5) Combine all data
+          // 5) Daten kombinieren
           const AlleUserData = {
             ...MitarbeiterDaten,
             ...BankDaten,
             ...AdresseDaten,
           };
 
-          // 6) Timestamps => Date
+          // 6) Timestamps => Date-Strings
           function convertTimestampsToDate(data) {
             for (var key in data) {
               if (data.hasOwnProperty(key)) {
                 let fieldVal = data[key];
-                // Prüfe, ob das Feld aussieht wie ein Firebase Timestamp
+                // Prüfen, ob das Feld ein Firebase Timestamp ist
                 if (
                   fieldVal &&
+                  typeof fieldVal === "object" &&
                   fieldVal.seconds !== undefined &&
                   fieldVal.nanoseconds !== undefined
                 ) {
@@ -140,7 +149,7 @@ sap.ui.define(
           }
           convertTimestampsToDate(AlleUserData);
 
-          // 7) userModel erzeugen
+          // 7) UserModel erzeugen
           const oUserModel = new JSONModel(AlleUserData);
           sap.ui.getCore().setModel(oUserModel, "userModel");
 
@@ -149,13 +158,12 @@ sap.ui.define(
           sessionStorage.setItem("currentSessionId", newSessionId);
           sessionStorage.setItem(newSessionId, JSON.stringify(AlleUserData));
 
-          // 9) Fertig => Navigieren
-          MessageToast.show("Login successful!");
-          console.log("Navigating to Main view");
+          // 9) Navigation
+          MessageToast.show("Login erfolgreich!");
           this.getOwnerComponent().getRouter().navTo("Main");
         } catch (error) {
-          console.error("Error during login:", error);
-          MessageBox.error("An unexpected error occurred: " + error.message);
+          console.error("Fehler beim Login:", error);
+          MessageBox.error("Unerwarteter Fehler: " + error.message);
         }
       },
     });

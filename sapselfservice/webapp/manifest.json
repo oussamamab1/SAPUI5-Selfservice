@@ -91,10 +91,8 @@
           "name": "Modules",
           "pattern": "Modules",
           "pattern": "Modules",
-          "name": "Modules",
-          "pattern": "Modules",
-          "name": "Modules",
-          "target": "Modules"
+          "name": "Modules"
+        
         },
         {
           "name": "Module1",

@@ -13,10 +13,50 @@ sap.ui.define(
       "sapselfservice.controller.AbsenceOverviewManager",
       {
         onInit: function () {
+          // 1) userModel holen
+          var oUserModel = sap.ui.getCore().getModel("userModel");
+          if (!oUserModel) {
+            // => Session check
+            this._restoreSessionOrGoLogin();
+          } else {
+            // userModel ist da => regulär fortfahren
+            this._continueInit();
+          }
+        },
+
+        /**
+         * Versucht, eine bestehende Session aus sessionStorage herzustellen.
+         * Falls vorhanden => userModel neu setzen, sonst => login.
+         */
+        _restoreSessionOrGoLogin: function () {
+          var sessionId = sessionStorage.getItem("currentSessionId");
+          if (sessionId) {
+            var userDataString = sessionStorage.getItem(sessionId);
+            if (userDataString) {
+              try {
+                var userData = JSON.parse(userDataString);
+                var oNewUserModel = new JSONModel(userData);
+                sap.ui.getCore().setModel(oNewUserModel, "userModel");
+                // Weiter
+                this._continueInit();
+                return;
+              } catch (err) {
+                console.error("Fehler beim Parsen der Session-Daten:", err);
+              }
+            }
+          }
+          // Keine Session => login
+          MessageToast.show("Bitte erst einloggen.");
+          this.getOwnerComponent().getRouter().navTo("login");
+        },
+
+        
+        _continueInit: function () {
           // 1) Eingeloggter Benutzer (Mitarbeiter-ID)
           var oUserModel = sap.ui.getCore().getModel("userModel");
           if (!oUserModel) {
             MessageToast.show("User model ist nicht gesetzt!");
+            this.getOwnerComponent().getRouter().navTo("login");
             return;
           }
           this.getView().setModel(oUserModel, "userModel");
@@ -52,17 +92,16 @@ sap.ui.define(
           var sCurrentUser = oView
             .getModel("userModel")
             .getProperty("/Mitarbeiter-ID");
-
           let aRelevantEmpIDs = [];
 
           // 1) CEO-Stelle
           this._getCeoStellenID()
             .then((sCeoStelleID) => {
-              // 2) alle CEO-Mitarbeiter-IDs
+              // 2) alle CEO-Mitarbeiter-IDs in unserem Fall nur die eine, aber wir wollten unsere Webanwendung dynamisch halten
               return this._getAllCEOs(sCeoStelleID);
             })
             .then((aCEOMitarbeiterIDs) => {
-              // 3) Check: Ist sCurrentUser in aCEOMitarbeiterIDs?
+              // 3) Check: Ist sCurrentUser " aktueller User" in aCEOMitarbeiterIDs? 
               var bIsCEO = aCEOMitarbeiterIDs.includes(sCurrentUser);
 
               if (bIsCEO) {
@@ -105,7 +144,7 @@ sap.ui.define(
 
         /**
          *  Lädt aus "Stelle" den Eintrag, dessen "Stellenbezeichnung" = "Chief Executiv Officer"
-         *  => gibt dessen "Stellen-ID" zurück 
+         *  => gibt dessen "Stellen-ID" zurück (z. B. "S001").
          */
         _getCeoStellenID: function () {
           return new Promise((resolve, reject) => {
@@ -204,7 +243,7 @@ sap.ui.define(
               })
               .then((snapshotOrg) => {
                 if (!snapshotOrg) {
-                  return; // Keine Abteilungen => fertig
+                  return; 
                 }
                 snapshotOrg.forEach((doc) => {
                   aEmpIDs.push(doc.data()["Mitarbeiter-ID"]);
@@ -270,7 +309,7 @@ sap.ui.define(
                 let aResult = [];
                 snapshotAbs.forEach((doc) => {
                   let oData = doc.data();
-                
+                  // doc.id => eindeutig für Update
                   oData.docId = doc.id;
 
                   // Falls "Datum" existiert, aber kein Start-/Enddatum,
@@ -290,6 +329,7 @@ sap.ui.define(
                   const sNachname = oPersonMap[sMID]?.Nachname || "";
                   oData["DisplayName"] = (sVorname + " " + sNachname).trim();
 
+                  // Jetzt Startdatum/Enddatum formatieren => FormattedStart / FormattedEnd
                   if (oData["Startdatum"]) {
                     let oJsDate = this._convertToDate(oData["Startdatum"]);
                     oData["FormattedStart"] = oJsDate
@@ -332,7 +372,7 @@ sap.ui.define(
         },
 
         /**
-         * Formatiert ein JS-Date in dd.MM.yyyy 
+         * Formatiert ein JS-Date in dd.MM.yyyy .
          */
         _formatDate: function (oDate) {
           var oFormatter = DateFormat.getDateInstance({
@@ -361,7 +401,7 @@ sap.ui.define(
             .then(
               function () {
                 MessageToast.show("Antrag wurde genehmigt.");
-                this._loadAbsences();
+                this._loadAbsences(); 
               }.bind(this)
             )
             .catch(function (error) {

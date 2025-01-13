@@ -6,6 +6,22 @@
 
     <App id="id.selfServiceApp">
         <Page id="id.2Page" title="Startseite" titleAlignment="Center">
+            <customHeader>
+                <Bar>
+                     <contentMiddle>
+                <Title text="Startseite" />
+            </contentMiddle>
+            <contentRight>
+                <Button
+                    text="Logout"
+                    type="Reject"
+                    icon="sap-icon://log"
+                    press=".onLogoutPress"
+                />
+            </contentRight>
+                </Bar>
+            </customHeader>
+
             <content>
                 <l:CSSGrid
                     id="idSelfServiceGrid"
@@ -13,7 +29,7 @@
                     gridTemplateColumns="repeat(auto-fit, minmax(250px, 1fr))"
                     gridGap="16px">
 
-                    <GenericTile id="id.MangerGenericTile" class="largeTile" header="Mitarbeiterdatenmanagement" subheader="Mitarbeiterdatenmanagement"  press="onGenericTileEmployeeDataPress">
+                    <GenericTile id="id.MangerGenericTile" class="largeTile" header="Mitarbeiterdatenmanagement" subheader="Mitarbeiterdatenmanagement" press="onGenericTileEmployeeDataPress">
                         <TileContent id="id.ManagerTileContent">
                             <ImageContent id="id.ManagerImageContent" src="sap-icon://activity-individual" />
                         </TileContent>

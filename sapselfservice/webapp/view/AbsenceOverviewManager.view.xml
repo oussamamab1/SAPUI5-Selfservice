@@ -4,7 +4,8 @@
     xmlns="sap.m">
 
     <App>
-        <Page title="Abwesenheiten genehmigen" showNavButton="true" navButtonPress=".onNavBack">
+        <Page title="Abwesenheiten genehmigen" showNavButton="true"
+        navButtonPress=".onNavBack">
             <Table
                 items="{absencesModel>/Absences}"
                 noData="{absencesModel>/noDataMessage}">
