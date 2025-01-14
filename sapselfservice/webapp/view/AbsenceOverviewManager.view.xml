@@ -4,8 +4,11 @@
     xmlns="sap.m">
 
     <App>
-        <Page title="Abwesenheiten genehmigen" showNavButton="true"
-        navButtonPress=".onNavBack">
+        <Page
+            title="Abwesenheiten genehmigen"
+            showNavButton="true"
+            navButtonPress=".onNavBack">
+
             <Table
                 items="{absencesModel>/Absences}"
                 noData="{absencesModel>/noDataMessage}">
@@ -16,27 +19,32 @@
                 </headerToolbar>
 
                 <columns>
-                    <!-- Name (Vorname + Nachname) -->
+                    <!-- Spalte 1: Name -->
                     <Column>
                         <Text text="Name" />
                     </Column>
 
-                    <!-- Startdatum -->
+                    <!-- Spalte 2: Abwesenheitsart -->
+                    <Column>
+                        <Text text="Abwesenheitsart" />
+                    </Column>
+
+                    <!-- Spalte 3: Startdatum -->
                     <Column>
                         <Text text="Startdatum" />
                     </Column>
 
-                    <!-- Enddatum -->
+                    <!-- Spalte 4: Enddatum -->
                     <Column>
                         <Text text="Enddatum" />
                     </Column>
 
-                    <!-- Status -->
+                    <!-- Spalte 5: Status(nur in Bearbeitung muss angezeigt werden) -->
                     <Column>
                         <Text text="Status" />
                     </Column>
 
-                    <!-- Aktionen -->
+                    <!-- Spalte 6: Aktionen Genehmigen/Ablehnen -->
                     <Column>
                         <Text text="Aktionen" />
                     </Column>
@@ -45,19 +53,11 @@
                 <items>
                     <ColumnListItem>
                         <cells>
-                            <!-- DisplayName -->
                             <ObjectIdentifier title="{absencesModel>DisplayName}" />
-
-                            <!-- Formatiertes Startdatum -->
+                            <ObjectIdentifier title="{absencesModel>AbwesenheitsartBeschreibung}" />
                             <ObjectIdentifier title="{absencesModel>FormattedStart}" />
-
-                            <!-- Formatiertes Enddatum -->
                             <ObjectIdentifier title="{absencesModel>FormattedEnd}" />
-
-                            <!-- Status -->
                             <ObjectStatus text="{absencesModel>Status}" />
-
-                            <!-- Genehmigen / Ablehnen -->
                             <HBox>
                                 <Button
                                     text="Genehmigen"
@@ -74,7 +74,6 @@
                 </items>
             </Table>
 
-            
         </Page>
     </App>
 </mvc:View>

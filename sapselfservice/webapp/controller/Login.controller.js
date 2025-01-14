@@ -14,30 +14,9 @@ sap.ui.define(
         // Beim Initialisieren prüfen wir, ob eine Session-ID vorhanden ist
         var sessionId = sessionStorage.getItem("currentSessionId");
         if (sessionId) {
-          // Versuchen, die Userdaten für diese Session zu laden
-          var userDataString = sessionStorage.getItem(sessionId);
-          if (userDataString) {
-            try {
-              var userData = JSON.parse(userDataString);
-              // Userdaten ins Model laden
-              var oUserModel = new JSONModel(userData);
-              sap.ui.getCore().setModel(oUserModel, "userModel");
-
-              // Direkt weiter zum Main-View
-              this.getOwnerComponent().getRouter().navTo("Main");
-              return;
-            } catch (e) {
-              console.error("Fehler beim Parsen der Session-Userdaten:", e);
-            }
-          } else {
-            console.error(
-              "Keine Userdaten in sessionStorage für die Session-ID:",
-              sessionId
-            );
-          }
+          sessionStorage.removeItem(sessionId);
         }
 
-        // Keine Session gefunden oder ungültig => auf Login-Seite bleiben
         console.log(
           "Keine (gültige) Session-ID gefunden. Bleibe auf Login-Seite."
         );
@@ -154,7 +133,7 @@ sap.ui.define(
           sap.ui.getCore().setModel(oUserModel, "userModel");
 
           // 8) Session abspeichern
-          var newSessionId = "session_" + new Date().getTime();
+          var newSessionId = "session_"+MitarbeiterID+ new Date().getTime();
           sessionStorage.setItem("currentSessionId", newSessionId);
           sessionStorage.setItem(newSessionId, JSON.stringify(AlleUserData));
 

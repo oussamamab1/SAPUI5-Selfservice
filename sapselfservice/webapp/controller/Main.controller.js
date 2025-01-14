@@ -53,7 +53,6 @@ sap.ui.define(
           if (oTile) {
             oTile.setVisible(isManager);
           }
-          
         } catch (error) {
           MessageToast.show("Fehler beim Abrufen der Rolle.");
           console.error("Error fetching roles: ", error);
@@ -93,47 +92,45 @@ sap.ui.define(
         }
       },
       onLogoutPress: function () {
-    var oDialog = new Dialog({
-        title: "Abmelden",
-        type: "Message",
-        content: new Text({
+        var oDialog = new Dialog({
+          title: "Abmelden",
+          type: "Message",
+          content: new Text({
             text: "Möchten Sie sich wirklich abmelden?",
-        }),
-        // bei der Bestätigung wird die Session gelöscht und der User zurück zur Login-Seite navigiert
-        beginButton: new Button({
+          }),
+          // bei der Bestätigung wird die Session gelöscht und der User zurück zur Login-Seite navigiert
+          beginButton: new Button({
             text: "Ja",
             type: "Reject",
             press: function () {
-                // 1) Session-Einträge entfernen
-                var sessionId = sessionStorage.getItem("currentSessionId");
-                if (sessionId) {
-                  // Userdaten entfernen
-                  sessionStorage.removeItem(sessionId);
-                  // Session-ID selbst entfernen
-                  sessionStorage.removeItem("currentSessionId");
-                }
+              // Session löschen
+              var sessionId = sessionStorage.getItem("currentSessionId");
+              if (sessionId) {
+                // Userdaten entfernen
+                sessionStorage.removeItem(sessionId);
+                // Session-ID selbst entfernen
+                sessionStorage.removeItem("currentSessionId");
+              }
+              sap.ui.getCore().setModel(null, "userModel");
 
-                // 2) userModel entfernen, falls gewünscht
-                sap.ui.getCore().setModel(null, "userModel");
+              this.getOwnerComponent().getRouter().navTo("login");
 
-                // 3) Zur Login-Route navigieren
-                this.getOwnerComponent().getRouter().navTo("login");
-
-                // 4) Dialog schließen
-                oDialog.close();
+              oDialog.close();
+              // damit können wir sichersstellen, dass keine Daten mehr von dem alten User vorhanden sind
+              window.location.reload();
             }.bind(this),
-        }),
-        // bei der Ablehnung wird der Dialog geschlossen
-        endButton: new Button({
+          }),
+          // bei der Ablehnung wird der Dialog geschlossen
+          endButton: new Button({
             text: "Nein",
             press: function () {
-                oDialog.close();
+              oDialog.close();
             },
-        }),
-    });
+          }),
+        });
 
-    oDialog.open();
-},
+        oDialog.open();
+      },
 
       onGenericTileTimeTrackingPress: function () {
         UIComponent.getRouterFor(this).navTo("TimeTracking");
@@ -174,6 +171,7 @@ sap.ui.define(
         MessageToast.show("Familienmitglieder anzeigen...");
         UIComponent.getRouterFor(this).navTo("FamilyMembers");
       },
+    
     });
   }
 );

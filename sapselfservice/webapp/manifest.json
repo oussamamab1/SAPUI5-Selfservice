@@ -88,11 +88,15 @@
         },
 
         {
+          "name": "Calendar",
+          "pattern": "Calendar",
+          "target": "Calendar"
+        },
+
+        {
           "name": "Modules",
           "pattern": "Modules",
-          "pattern": "Modules",
-          "name": "Modules"
-        
+          "target": "Modules"
         },
         {
           "name": "Module1",
@@ -236,6 +240,11 @@
           "clearControlAggregation": false,
           "viewId": "Login",
           "viewName": "Login"
+        },
+        "Calendar": {
+          "viewName": "Calendar",
+          "viewLevel": 3,
+          "viewId": "Calendar"
         },
         "EmployeeDirectory": {
           "viewName": "EmployeeDirectory",
