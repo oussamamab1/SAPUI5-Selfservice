@@ -72,9 +72,18 @@
                                         <TimePicker value="{timeTracking>session2End}" id="timePicker2e" displayFormat="HH:mm" change="onValidateTime" />
                                     </HBox>
                                 </VBox>
-                                    <Text text="{= ${timeTracking>session1Start} &amp;&amp; ${timeTracking>session1End} ? 
+                                    <Text text="{= ${timeTracking>session1Start} &amp;&amp; ${timeTracking>session1End} &amp;&amp; ${timeTracking>session2Start} &amp;&amp; ${timeTracking>session2End} ? 
+                                                ((((${timeTracking>session1End}.split(':')[0] - ${timeTracking>session1Start}.split(':')[0]) * 60 + 
+                                                (${timeTracking>session1End}.split(':')[1] - ${timeTracking>session1Start}.split(':')[1])) + 
+                                                ((${timeTracking>session2End}.split(':')[0] - ${timeTracking>session2Start}.split(':')[0]) * 60 + 
+                                                (${timeTracking>session2End}.split(':')[1] - ${timeTracking>session2Start}.split(':')[1]))) / 60).toFixed(2) + ' h' : 
+                                                (${timeTracking>session1Start} &amp;&amp; ${timeTracking>session1End} ? 
                                                 (((${timeTracking>session1End}.split(':')[0] - ${timeTracking>session1Start}.split(':')[0]) * 60 + 
-                                                (${timeTracking>session1End}.split(':')[1] - ${timeTracking>session1Start}.split(':')[1])) / 60).toFixed(2) + ' h' : '' }" />
+                                                (${timeTracking>session1End}.split(':')[1] - ${timeTracking>session1Start}.split(':')[1])) / 60).toFixed(2) + ' h' : 
+                                                (${timeTracking>session2Start} &amp;&amp; ${timeTracking>session2End} ? 
+                                                (((${timeTracking>session2End}.split(':')[0] - ${timeTracking>session2Start}.split(':')[0]) * 60 + 
+                                                (${timeTracking>session2End}.split(':')[1] - ${timeTracking>session2Start}.split(':')[1])) / 60).toFixed(2) + ' h' : '')) }" />
+
                                     <Text text="{= ${timeTracking>session1End} &amp;&amp; ${timeTracking>session2Start} ? 
                                                 (((${timeTracking>session2Start}.split(':')[0] - ${timeTracking>session1End}.split(':')[0]) * 60 + 
                                                 (${timeTracking>session2Start}.split(':')[1] - ${timeTracking>session1End}.split(':')[1])) / 60).toFixed(2) + ' h' : '0 h' }" />

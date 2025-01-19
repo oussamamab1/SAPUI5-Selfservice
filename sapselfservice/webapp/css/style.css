@@ -2,7 +2,7 @@
     position: relative;
     display: grid;
     min-width: 1397px;
-    column-gap: 2rem;
+    column-gap: 20em;
     grid-gap: 1rem;
     grid-template-columns: repeat(auto-fit, minmax(100%, 1rem));
     justify-content: stretch;
@@ -10,8 +10,8 @@
 }
 
 .tileText {
-    font-size: 0.72rem; 
-    font-weight: 150; 
+    font-size: 1rem; 
+    font-weight: 1350; 
     color: white; 
     text-align: center;
 }
