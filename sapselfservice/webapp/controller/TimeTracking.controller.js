@@ -119,8 +119,8 @@ sap.ui.define(
                 Arbeitsend: entry.Arbeitsend
                   ? entry.Arbeitsend.toDate().toLocaleTimeString("de-DE")
                   : "",
-                Pausendauer: entry.Pausendauer,
-                Stundengesamt: entry.Stundengesamt,
+                Pausendauer: entry.Pausendauer.toString().substring(0, 10),
+                Stundengesamt: entry.Stundengesamt.toFixed(2),
               });
             });
             console.log(data);
@@ -141,12 +141,12 @@ sap.ui.define(
             console.log("Columns for autoTable:", columns);
 
             doc.autoTable(columns, data, {
-              startY: false,
+              startY: 20,
               tableWidth: 550,
               styles: { cellPadding: 2 },
               headerStyles: { rowHeight: 15, fontSize: 8 },
               bodyStyles: { rowHeight: 12, fontSize: 8, valign: "middle" },
-              rowPageBreak: "avoid",
+              // rowPageBreak: "auto",
             });
 
             // Save the PDF

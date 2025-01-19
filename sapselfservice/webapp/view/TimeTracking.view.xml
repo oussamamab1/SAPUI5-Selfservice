@@ -5,8 +5,7 @@
     xmlns:table="sap.ui.table"
     controllerName="sapselfservice.controller.TimeTracking">
 
-    <Page title="Zeiterfassung bearbeiten" titleAlignment="Center">
-    
+    <Page showNavButton="true" navButtonPress="onNavBack">
             <VBox fitContainer="true">
             <Toolbar >
             <Label text= "Meine Zeiterfassung anzeigen" class= "meinezeitererfassungCSS"></Label>
@@ -27,7 +26,7 @@
 
             </FlexBox>
                 <Toolbar >
-                <Label text ="Meine Zeiterfassung" class="meinezeitererfassungCSS"/>
+                <Label text ="Meine Zeiterfassung anlegen" class="meinezeitererfassungCSS"/>
                     <ToolbarSpacer />
                         <ToolbarSpacer />
                         <Button text="Eintrag Hinzufügen" press="onAddRow" icon= "sap-icon://add-activity" type= "Emphasized"/>

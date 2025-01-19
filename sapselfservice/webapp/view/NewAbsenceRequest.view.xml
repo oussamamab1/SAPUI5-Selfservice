@@ -6,7 +6,7 @@
     xmlns:f="sap.ui.layout.form"
     controllerName="sapselfservice.controller.NewAbsenceRequest">
 
-    <Page title="Abwesenheitsantrag anlegen">
+    <Page >
         <content>
         <f:SimpleForm editable="false"
         title= "Auswahl der Abwesenheitsart"
@@ -26,19 +26,19 @@
             <VBox>
                 <Panel headerText="Allgemeine Daten">
                     <VBox>
-                        <RadioButtonGroup id="rbg3" columns="2" select="onradioButtonChange">
+                        <RadioButtonGroup id="radiobuttonsgroup" columns="2" select="onradioButtonChange">
                             <RadioButton text="Mehr als ein Tag" />
                             <RadioButton text="Ein Tag oder weniger" />
                         </RadioButtonGroup>
 
                         <VBox id="oneDayOrLess" visible="{= ${/selectedRadioButton} === 'oneDayOrLess' }">
                             <Label text="Datum:" />
-                            <DatePicker id="datepicker" change="onDateChange" />
+                            <DatePicker id="datepicker" change="onDateChange" placeholder="Bitte wählen Sie ein Datum" valueStateText="Ungültiges Datum"/>
                             <Label text="Beginn:" />
                             <TimePicker id="beginnTimePicker" change="onTimeChange" />
                             <Label text="Ende:" />
                             <TimePicker id="endTimePicker" change="onTimeChange" />
-                            <Label text="Dauer in Stunden:" />
+                            <Label text="Dauer in Stunden:"/>
                             <Input id="durationInput" value="Gearbeitete Stunden" enabled="false" />
                         </VBox>
 
@@ -65,7 +65,7 @@
         <footer>
             <Toolbar>
                 <ToolbarSpacer />
-                <Button text="Sichern" type="Emphasized" press="onSaveRequest" />
+                <Button id= "Savebutton" text="Sichern" type="Emphasized" press="onSaveRequest" />
                 <Button text="Abbrechen" press="onCancelRequest"/>
             </Toolbar>
         </footer>

@@ -99,14 +99,31 @@ sap.ui.define(
           }
           var AdresseDaten = AdresseDoc.docs[0].data();
 
-          // 5) Daten kombinieren
+          // 5) Abteilung
+          const AbteilungRef=firebase.db.collection("OrganisatorischeZuordnung");
+          const AbteilungDoc= await AbteilungRef.where(
+            "Mitarbeiter-ID",
+            "==",
+            MitarbeiterID
+          ).get();
+
+          if (AbteilungDoc.empty) {
+            MessageBox.error(
+              "Keine Abteilung gefunden für Benutzer: " + MitarbeiterID
+            );
+            return;
+          }
+          var AbteilungDaten = AbteilungDoc.docs[0].data();
+
+          // 6) Daten kombinieren
           const AlleUserData = {
             ...MitarbeiterDaten,
             ...BankDaten,
             ...AdresseDaten,
+            ...AbteilungDaten
           };
 
-          // 6) Timestamps => Date-Strings
+          // 7) Timestamps => Date-Strings
           function convertTimestampsToDate(data) {
             for (var key in data) {
               if (data.hasOwnProperty(key)) {
@@ -128,16 +145,16 @@ sap.ui.define(
           }
           convertTimestampsToDate(AlleUserData);
 
-          // 7) UserModel erzeugen
+          // 8) UserModel erzeugen
           const oUserModel = new JSONModel(AlleUserData);
           sap.ui.getCore().setModel(oUserModel, "userModel");
 
-          // 8) Session abspeichern
+          // 9) Session abspeichern
           var newSessionId = "session_"+MitarbeiterID+ new Date().getTime();
           sessionStorage.setItem("currentSessionId", newSessionId);
           sessionStorage.setItem(newSessionId, JSON.stringify(AlleUserData));
 
-          // 9) Navigation
+          // 10) Navigation
           MessageToast.show("Login erfolgreich!");
           this.getOwnerComponent().getRouter().navTo("Main");
         } catch (error) {
