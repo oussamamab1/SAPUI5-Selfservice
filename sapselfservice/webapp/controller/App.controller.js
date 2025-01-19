@@ -7,6 +7,7 @@ sap.ui.define(
   
       return BaseController.extend("sapselfservice.controller.App", {
         onInit: function() {
+          this.getOwnerComponent().getRouter().initialize();
         }
       });
     }

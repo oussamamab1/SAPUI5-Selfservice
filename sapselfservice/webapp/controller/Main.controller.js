@@ -57,6 +57,16 @@ sap.ui.define(
           MessageToast.show("Fehler beim Abrufen der Rolle.");
           console.error("Error fetching roles: ", error);
         }
+        console.log(oModel.getProperty("/Nachname"));
+
+if (oModel) {
+  this.getView().setModel(oModel, "userModel");
+  oModel.refresh(true);
+
+  // Debug: Check if the control has the correct value
+  var oText = this.getView().byId("welcomeText");
+  console.log("Text control value after model refresh:", oText.getText());
+}
       },
 
       _checkIfManager: async function (oModel) {
@@ -91,6 +101,8 @@ sap.ui.define(
           throw error;
         }
       },
+      
+
       onLogoutPress: function () {
         var oDialog = new Dialog({
           title: "Abmelden",
@@ -136,7 +148,10 @@ sap.ui.define(
         UIComponent.getRouterFor(this).navTo("TimeTracking");
         MessageToast.show("Zeiterfassung öffnen...");
       },
-
+      onHomePress: function () {
+        UIComponent.getRouterFor(this).navTo("Main");
+      },
+      
       onGenericTileEmployeeDataPress: function () {
         UIComponent.getRouterFor(this).navTo("AbsenceOverviewManager");
       },

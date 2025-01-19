@@ -1,90 +1,137 @@
 <mvc:View
     controllerName="sapselfservice.controller.Main"
     xmlns:mvc="sap.ui.core.mvc"
+    xmlns:t="sap.tnt"
     xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
     xmlns:l="sap.ui.layout.cssgrid">
-
     <App id="id.selfServiceApp">
-        <Page id="id.2Page" title="Startseite" titleAlignment="Center">
-            <customHeader>
-                <Bar>
-                     <contentMiddle>
-                <Title text="Startseite" />
-            </contentMiddle>
-            <contentRight>
-                <Button
-                    text="Logout"
-                    type="Reject"
-                    icon="sap-icon://log"
-                    press=".onLogoutPress"
-                />
-            </contentRight>
-                </Bar>
-            </customHeader>
+        <Panel id="id.2Page" backgroundDesign="Translucent">
+            <t:ToolHeader class="sapUiTinyMarginTop" height="5em">
+            <Image src="https://www.barrierefrei-studieren.de/sites/default/files/hs-rheinmain-logo.png" 
+                  class="zoomImage"
+                    height="8em" 
+                    width="17em" />
+                <IconTabHeader/>
+                <Button icon="sap-icon://search" type="Transparent">
+                    <layoutData>
+                        <OverflowToolbarLayoutData priority="NeverOverflow" />
+                    </layoutData>
+                </Button>
+                <Button icon="sap-icon://home" type="Transparent" press="onGenericTileHomePress">
 
-            <content>
-                <l:CSSGrid
-                    id="idSelfServiceGrid"
-                    class="gridSpacing"
-                    gridTemplateColumns="repeat(auto-fit, minmax(250px, 1fr))"
-                    gridGap="16px">
+                    <layoutData>
+                        <OverflowToolbarLayoutData priority="NeverOverflow" />
+                    </layoutData>
+                </Button>
+                <MenuButton icon="sap-icon://person-placeholder" type="Transparent">
+                    <layoutData>
+                        <OverflowToolbarLayoutData priority="NeverOverflow" />
+                    </layoutData>
+                    <Menu>
+                        <MenuItem text="Mein Profil" icon="sap-icon://employee" press="onGenericTileProfilePress"/>
+                        <MenuItem text="Logout" icon="sap-icon://log" press="onLogoutPress" />
+                    </Menu>
+                </MenuButton>
+            </t:ToolHeader>
+            <ScrollContainer 
+                vertical="true" 
+                class="contentScroll" 
+                width="100%" 
+                height="calc(100vh - 5em)"> <!-- Adjust height to exclude header -->
+                <content>
+                    <!-- Welcome Banner -->
+                    <Panel height="300px" class="noScroll">
+                        <Image 
+                            class="welcomeBanner"
+                            src="https://www.hessen-schafft-wissen.de/media/pages/hochschulen/hochschule-rheinmain/a0e3c3e30d-1643268348/hochschule-rheinmain-g-gebaude-1200x.jpg" 
+                            alt="Welcome Banner"
+                            width="100%"
+                            height="100%" />
+                        <Text 
+                            id="welcomeText" 
+                            text="Guten Tag, {userModel>/Nachname}!" 
+                            class="welcomeText" />
+                    </Panel>
 
-                    <GenericTile id="id.MangerGenericTile" class="largeTile" header="Mitarbeiterdatenmanagement" subheader="Mitarbeiterdatenmanagement" press="onGenericTileEmployeeDataPress">
-                        <TileContent id="id.ManagerTileContent">
-                            <ImageContent id="id.ManagerImageContent" src="sap-icon://activity-individual" />
-                        </TileContent>
-                    </GenericTile>
 
-                    <GenericTile id="id.15GenericTile" class="largeTile" header="Meine Abwesenheitsanträge" subheader="Meine Abwesenheitsanträge anzeigen" press="onGenericTileAbsencesPress">
-                        <TileContent id="id.7AbsencesTileContent">
-                            <ImageContent id="id.8AbsencesImageContent" src="sap-icon://general-leave-request" />
-                        </TileContent>
-                    </GenericTile>
+            <f:GridList id="gridList2" class="gridSpacing">
+                <f:customLayout>
+                    <l:GridBoxLayout boxWidth="14.053rem" />
+                </f:customLayout>
 
-                    <GenericTile id="id.14GenericTile" class="largeTile" header="Meine Zeiterfassung" subheader="Meine Zeiterfassung anzeigen" press="onGenericTileTimeTrackingPress">
-                        <TileContent id="id.10TimeCorrectionsTileContent">
-                            <ImageContent id="id.11TimeCorrectionsImageContent" src="sap-icon://date-time" />
-                        </TileContent>
-                    </GenericTile>
+                <!-- Mitarbeiterdatenmanagement -->
+                <f:GridListItem  type="Active" press="onGenericTileEmployeeDataPress" class="tilePANTONE3272">
+                    <VBox height="4rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon src="sap-icon://activity-individual" size="2.5rem" class="sapUiTinyMarginBottom" />
+                        <Title text="Mitarbeiterdatenmanagement" wrapping="false" textAlign="Center" class="tileText" />
+                    </VBox>
+                </f:GridListItem>
 
-                    <GenericTile id="id.16GenericTile" class="largeTile" header="Meine Schulungen" subheader="Schulungen anzeigen" press="onGenericTileTrainingPress">
-                        <TileContent id="id.30TrainingTileContent">
-                            <ImageContent id="id.26TrainingImageContent" src="sap-icon://education" />
-                        </TileContent>
-                    </GenericTile>
+                <!-- Meine Abwesenheitsanträge -->
+                <f:GridListItem  type="Active" press="onGenericTileAbsencesPress" class="tilePANTONE638">
+                    <VBox height="4rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon src="sap-icon://general-leave-request" size="2.5rem" class="sapUiTinyMarginBottom" />
+                        <Title text="Meine Abwesenheitsanträge" wrapping="false" textAlign="Center" class="tileText" />
+                    </VBox>
+                </f:GridListItem>
 
-                    <GenericTile id="id.9GenericTile" class="largeTile" header="Mein Profil" subheader="Profil anzeigen" press="onGenericTileProfilePress">
-                        <TileContent id="id.25ProfileTileContent">
-                            <ImageContent id="id.26ProfileImageContent" src="sap-icon://employee" />
-                        </TileContent>
-                    </GenericTile>
+                <!-- Meine Zeiterfassung -->
+                <f:GridListItem type="Active" press="onGenericTileTimeTrackingPress" class="tilePANTONE382">
+                    <VBox height="4rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon src="sap-icon://date-time" size="2.5rem" class="sapUiTinyMarginBottom" />
+                        <Title text="Meine Zeiterfassung" wrapping="false" textAlign="Center" class="tileText" />
+                    </VBox>
+                </f:GridListItem>
 
-                    <GenericTile id="id.12GenericTile" class="largeTile" header="Meine Entgeltnachweise" subheader="Entgeltnachweise anzeigen" press="onGenericTilePayStatementsPress">
-                        <TileContent id="id.16PayStatementsTileContent">
-                            <ImageContent id="id.17PayStatementsImageContent" src="sap-icon://customer-financial-fact-sheet" />
-                        </TileContent>
-                    </GenericTile>
+                <!-- Meine Schulungen -->
+                <f:GridListItem type="Active" press="onGenericTileTrainingPress" class="tilePANTONEViolet">
+                    <VBox height="4rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon src="sap-icon://education" size="2.5rem" class="sapUiTinyMarginBottom" />
+                        <Title text="Meine Schulungen" wrapping="false" textAlign="Center" class="tileText" />
+                    </VBox>
+                </f:GridListItem>
 
-                    <GenericTile id="id.8GenericTile" class="largeTile" header="Mitarbeiter-VZ" subheader="Mitarbeiter abfragen" press="onGenericTileEmployeeDirectoryPress">
-                        <TileContent id="id.28EmployeeDirectoryTileContent">
-                            <ImageContent id="id.29EmployeeDirectoryImageContent" src="sap-icon://people-connected" />
-                        </TileContent>
-                    </GenericTile>
+                <!-- Meine Entgeltnachweise -->
+                <f:GridListItem type="Active" press="onGenericTilePayStatementsPress" class="tilePANTONE234">
+                    <VBox height="4rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon src="sap-icon://customer-financial-fact-sheet" size="2.5rem" class="sapUiTinyMarginBottom" />
+                        <Title text="Meine Entgeltnachweise" wrapping="false" textAlign="Center" class="tileText" />
+                    </VBox>
+                </f:GridListItem>
 
-                    <GenericTile id="id.5GenericTile" class="largeTile" header="Meine Lohnsteuerbescheinigungen" subheader="Anzeigen" press="onGenericTileTaxStatementsPress">
-                        <TileContent id="id.37TaxStatementsTileContent">
-                            <ImageContent id="id.38TaxStatementsImageContent" src="sap-icon://expense-report" />
-                        </TileContent>
-                    </GenericTile>
+                <!-- Mitarbeiter-VZ -->
+                <f:GridListItem type="Active" press="onGenericTileEmployeeDirectoryPress" class="tilePANTONE151">
+                    <VBox height="4rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon src="sap-icon://people-connected" size="2.5rem" class="sapUiTinyMarginBottom" />
+                        <Title text="Mitarbeiter-VZ" wrapping="false" textAlign="Center" class="tileText" />
+                    </VBox>
+                </f:GridListItem>
 
-                    <GenericTile id="id.1GenericTile" class="largeTile" header="Meine Familienmitglieder" subheader="Meine Familienmitglieder anzeigen" press="onGenericTileFamilyMembersPress">
-                        <TileContent id="id.49FamilyMembersTileContent">
-                            <ImageContent id="id.50FamilyMembersImageContent" src="sap-icon://family-care" />
-                        </TileContent>
-                    </GenericTile>
-                    
-                </l:CSSGrid>
-            </content>
-        </Page>
+                <!-- Meine Lohnsteuerbescheinigungen -->
+                <f:GridListItem type="Active" press="onGenericTileTaxStatementsPress" class="tilePANTONE3272">
+                    <VBox height="4rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon src="sap-icon://expense-report" size="2.5rem" class="sapUiTinyMarginBottom" />
+                        <Title text="Meine Lohnsteuerbescheinigungen" wrapping="false" textAlign="Center" class="tileText" />
+                    </VBox>
+                </f:GridListItem>
+
+                <!-- Meine Familienmitglieder -->
+                <f:GridListItem type="Active" press="onGenericTileFamilyMembersPress" class="tilePANTONE638">
+                    <VBox height="4rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon src="sap-icon://family-care" size="2.5rem" class="sapUiTinyMarginBottom" />
+                        <Title text="Meine Familienmitglieder" wrapping="false" textAlign="Center" class="tileText" />
+                    </VBox>
+                </f:GridListItem>
+            </f:GridList>
+
+
+
+                </content>
+            </ScrollContainer>
+        </Panel>
     </App>
 </mvc:View>
+                
+          
