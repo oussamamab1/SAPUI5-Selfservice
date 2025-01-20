@@ -140,70 +140,71 @@ sap.ui.define(
       _loadGenehmigender: function () {
         var oUserModel = sap.ui.getCore().getModel("userModel");
         if (!oUserModel) {
-          sap.m.MessageToast.show("Das Benutzer-Modell ist nicht gesetzt!");
-          this.getOwnerComponent().getRouter().navTo("login");
-          return;
+            sap.m.MessageToast.show("Das Benutzer-Modell ist nicht gesetzt!");
+            this.getOwnerComponent().getRouter().navTo("login");
+            return;
         }
-      
+    
         var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
         var stellenId = oUserModel.getProperty("/Stellen-ID");
         var abteilungId = oUserModel.getProperty("/Abteilung-ID");
-      
+    
         if (!abteilungId || !mitarbeiterId || !stellenId) {
-          console.error("Required user data is missing!");
-          return;
+            console.error("Required user data is missing!");
+            return;
         }
+    
+        const approverInput = this.byId("approverInput");
+        if (!approverInput) {
+            console.error("approverInput element not found!");
+            return;
+        }
+    
         firebase.db
-          .collection("Abteilung")
-          .where("Abteilung-ID", "==", abteilungId)
-          .get()
-          .then((querySnapshot) => {
-            if (!querySnapshot.empty) {
-              const abteilungsleiterId = querySnapshot.docs[0].data()["Abteilungsleiter-ID"];
-      
-              if (!abteilungsleiterId) {
-                console.error("No Abteilungsleiter-ID found for Abteilung-ID:", abteilungId);
-                return Promise.reject("No Abteilungsleiter-ID found.");
-              }
-      
-              return firebase.db
-                .collection("DatenZurPerson")
-                .where("Mitarbeiter-ID", "==", abteilungsleiterId)
-                .get();
-            } else {
-              console.error("No documents found for Abteilung-ID:", abteilungId);
-              return Promise.reject("No documents found.");
-            }
-          })
-          .then((querySnapshot) => {
-            if (!querySnapshot.empty) {
-              // if (stellenId === "S001" || mitarbeiterId === abteilungsleiterId) {
-              //   const approverInput = this.byId("approverInput");
-              //   if (approverInput) {
-              //     approverInput.setValue("CEO");
-              //   } else {
-              //     console.error("approverInput element not found!");
-              //   }
-              //   return; 
-              // }
-              const mitarbeiterData = querySnapshot.docs[0].data();
-              console.log(mitarbeiterData);
-              const name = mitarbeiterData.Vorname + " " + mitarbeiterData.Nachname;
-      
-              const approverInput = this.byId("approverInput");
-              if (approverInput) {
+            .collection("Abteilung")
+            .where("Abteilung-ID", "==", abteilungId)
+            .get()
+            .then((querySnapshot) => {
+                if (querySnapshot.empty) {
+                    console.log("No Abteilung found for Abteilung-ID. Setting approver to CEO.");
+                    approverInput.setValue("CEO");
+                    return Promise.reject("No Abteilung found.");
+                }
+    
+                const abteilungsleiterId = querySnapshot.docs[0].data()["Abteilungsleiter-ID"];
+    
+                // If there's no Abteilungsleiter(CEO) or the current user is the Abteilungsleiter
+                if (!abteilungsleiterId || abteilungsleiterId === mitarbeiterId) {
+                    console.log("CEO or Mitarbeiter is the Abteilungsleiter. Setting approver to CEO.");
+                    approverInput.setValue("CEO");
+                    return Promise.reject("No specific approver needed.");
+                }
+    
+                return firebase.db
+                    .collection("DatenZurPerson")
+                    .where("Mitarbeiter-ID", "==", abteilungsleiterId)
+                    .get();
+            })
+            .then((querySnapshot) => {
+                if (querySnapshot.empty) {
+                    console.error("No DatenZurPerson found for Abteilungsleiter-ID. Setting approver to CEO.");
+                    approverInput.setValue("CEO");
+                    return;
+                }
+    
+                const mitarbeiterData = querySnapshot.docs[0].data();
+                const name = mitarbeiterData.Vorname + " " + mitarbeiterData.Nachname;
+                console.log("Approver found:", name);
+    
                 approverInput.setValue(name);
-              } else {
-                console.error("approverInput element not found!");
-              }
-            } else {
-              console.error("No documents found in DatenzurPerson for Abteilungsleiter-ID.");
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching approver details:", error);
-          });
-      },      
+            })
+            .catch((error) => {
+                if (error !== "No specific approver needed.") {
+                    console.error("Error fetching approver details:", error);
+                }
+            });
+        },
+         
       
       clearInputFields: function (controlIds) {
         const oView = this.getView();
@@ -243,68 +244,65 @@ sap.ui.define(
         const sSourceId = oSource.getId();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+    
         if (sSourceId.includes("Zeitraum")) {
-          const oStartDate = oSource.getDateValue();
-          const oEndDate = oSource.getSecondDateValue();
-          if (oStartDate && oEndDate) {
-            if (oStartDate <= today || oEndDate <= today) {
-              oSource.setValueState("Error");
-              this.byId("Savebutton").setEnabled(false);
-              oSource.setValueStateText("Datum muss ab morgen gewählt werden.");
-              this.byId("durationTagInput").setValue("");
-          } else {
-              oSource.setValueState("None");
-              this.byId("Savebutton").setEnabled(true);
-              const iDuration = this.calculateWeekdays(oStartDate, oEndDate);
-              this.byId("durationTagInput").setValue(iDuration);
-          }
-          } else {
-              this.byId("durationTagInput").setValue("");
-          }
-      } else if (sSourceId.includes("datepicker")) {
-          const selectedDate = oSource.getDateValue();
-          const absenceType = this.getView().byId("absenceTypeSelect").getSelectedItem()?.getText();
-          
-          if (selectedDate) {
-              const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 6 = Saturday
-              let isValid = true;
-              let errorMessage = "";
-              if (selectedDate <= today) {
-                  isValid = false;
-                 errorMessage = "Datum muss ab morgen gewählt werden.";
-                  this.byId("Savebutton").setEnabled(false);
-              }
-
-              if (isValid && absenceType) {
-                  if (absenceType === "Teleworking Wochenende") {
-                      isValid = dayOfWeek === 0 || dayOfWeek === 6;
-                      if (!isValid) {
+            const oStartDate = oSource.getDateValue();
+            const oEndDate = oSource.getSecondDateValue();
+            if (oStartDate && oEndDate) {
+                if (oStartDate < today || oEndDate < today) {
+                    oSource.setValueState("Error");
+                    this.byId("Savebutton").setEnabled(false);
+                    oSource.setValueStateText("Datum muss ab morgen gewählt werden.");
+                    this.byId("durationTagInput").setValue("");
+                } else {
+                    oSource.setValueState("None");
+                    this.byId("Savebutton").setEnabled(true);
+                    const iDuration = this.calculateWeekdays(oStartDate, oEndDate);
+                    this.byId("durationTagInput").setValue(iDuration);
+                }
+            } else {
+                this.byId("durationTagInput").setValue("");
+            }
+        } else if (sSourceId.includes("datepicker")) {
+            const selectedDate = oSource.getDateValue();
+            const absenceType = this.getView().byId("absenceTypeSelect").getSelectedItem()?.getText();
+    
+            if (selectedDate) {
+                const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 6 = Saturday
+                let isValid = true;
+                let errorMessage = "";
+    
+                if (absenceType === "Teleworking Wochenende") {
+                    isValid = dayOfWeek === 0 || dayOfWeek === 6;
+                    if (!isValid) {
                         errorMessage = "Für Teleworking Wochenende bitte Samstag oder Sonntag wählen.";
                     }
-                  } else if (absenceType === "Teleworking") {
-                      isValid = dayOfWeek >= 1 && dayOfWeek <= 5;
-                      if (!isValid) {
+                } else if (absenceType === "Teleworking") {
+                    isValid = dayOfWeek >= 1 && dayOfWeek <= 5;
+                    if (!isValid) {
                         errorMessage = "Für Teleworking bitte Montag bis Freitag wählen.";
                     }
-                  } else if (absenceType === "Urlaub") {
-                      isValid = dayOfWeek >= 1 && dayOfWeek <= 5;
-                      if (!isValid) {
+                } else if (absenceType === "Urlaub") {
+                    if (selectedDate <= today) {
+                        isValid = false;
+                        errorMessage = "Datum muss ab morgen gewählt werden.";
+                    } else if (dayOfWeek === 0 || dayOfWeek === 6) {
+                        isValid = false;
                         errorMessage = "Für Urlaub bitte Montag bis Freitag wählen.";
                     }
-                  }
-              }
-
-              if (isValid) {
-                oSource.setValueState("None");
-                this.byId("Savebutton").setEnabled(true);
-              } else {
-                  oSource.setValueState("Error");
-                  oSource.setValueStateText(errorMessage);
-                  this.byId("Savebutton").setEnabled(false);
-              }
+                }
+    
+                if (isValid) {
+                    oSource.setValueState("None");
+                    this.byId("Savebutton").setEnabled(true);
+                } else {
+                    oSource.setValueState("Error");
+                    oSource.setValueStateText(errorMessage);
+                    this.byId("Savebutton").setEnabled(false);
+                }
             }
         }
-      },
+    },
 
       calculateWeekdays: function (startDate, endDate) {
         let weekdaysCount = 0;
@@ -382,6 +380,17 @@ sap.ui.define(
       
         // Clear the input fields 
         this.clearInputFields(inputFields);
+
+        var oDatePicker = oView.byId("datepicker");
+        if (oDatePicker) {
+            oDatePicker.setValueState("None"); 
+            oDatePicker.setValueStateText(""); 
+        }
+
+        var oSaveButton = oView.byId("Savebutton");
+        if (oSaveButton) {
+            oSaveButton.setEnabled(true); 
+        }
     
         if (oSelectedType && oSelectedType.getText() !== "Urlaub") {
             // Disable the "Mehr als ein Tag" option
@@ -563,6 +572,15 @@ sap.ui.define(
                       : ""
                   }`
                 );
+                  this.clearInputFields([
+                    "datepicker",
+                    "beginnTimePicker",
+                    "endTimePicker",
+                    "durationInput",
+                    "Zeitraum",
+                    "durationTagInput",
+                    "noteTextArea",
+                  ]);
                 sap.ui.core.UIComponent.getRouterFor(this).navTo("absenceOverview");
               });
           })

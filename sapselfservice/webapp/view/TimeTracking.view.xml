@@ -6,55 +6,87 @@
     controllerName="sapselfservice.controller.TimeTracking">
 
     <Page showNavButton="true" navButtonPress="onNavBack">
-            <VBox fitContainer="true">
-            <Toolbar >
-            <Label text= "Meine Zeiterfassung anzeigen" class= "meinezeitererfassungCSS"></Label>
-            </Toolbar>
-            <FlexBox    
-                height="100px"
-                alignItems="Center"
-                justifyContent="Center" >
-                <Label text="Monat auswählen:" />
-                <DatePicker
-                    id="monthyearPicker"
-                    displayFormat="MM.yyyy"
-                    valueFormat="MM.yyyy"
-                    placeholder="Month.Year auswählen"
-                />
-                <ToolbarSpacer />
-                <Button text="Export to PDF" press="onExportToPDF" icon="sap-icon://pdf-attachment" type="Accept"/>
+        <IconTabBar expanded="true" id="timeTrackingTabBar">
+            <items>
+                <IconTabFilter text="Zeiterfassung anzeigen"  key="show">
+                    <VBox fitContainer="true">
+                        <FlexBox
+                            height="100px"
+                            alignItems="Center"
+                            justifyContent="Center">
+                            <Label text="Monat auswählen:" />
+                            <DatePicker
+                                id="monthyearPicker"
+                                displayFormat="MM.yyyy"
+                                valueFormat="MM.yyyy"
+                                placeholder="Month.Year auswählen" />
+                            <ToolbarSpacer />
+                            <Button text="Zeiterfassung anzeigen" press="onAnzeigenPress" icon="sap-icon://show" type="Accept" />
+                        </FlexBox>
+                        <VBox >
+                        <Table id="ZeiterfassungZeigenTable" items="{ZeiterfassungModel>/entries}">
+                        <columns>
+                            <Column>
+                                <Text text="Datum"/>
+                            </Column>
+                            <Column>
+                                <Text text="Arbeitsbeginn"/>
+                            </Column>
+                            <Column>
+                                <Text text="Arbeitsend"/>
+                            </Column>
+                            <Column>
+                                <Text text="Pausendauer"/>
+                            </Column>
+                            <Column>
+                                <Text text="Stundengesamt"/>
+                            </Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem>
+                                <cells>
+                                    <Text text="{ZeiterfassungModel>Datum}"/>
+                                    <Text text="{ZeiterfassungModel>Arbeitsbeginn}"/>
+                                    <Text text="{ZeiterfassungModel>Arbeitsend}"/>
+                                    <Text text="{ZeiterfassungModel>Pausendauer}"/>
+                                    <Text text="{ZeiterfassungModel>Stundengesamt}"/>
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                        </Table>
+                        </VBox>
+                    </VBox>
+                </IconTabFilter>
 
-            </FlexBox>
-                <Toolbar >
-                <Label text ="Meine Zeiterfassung anlegen" class="meinezeitererfassungCSS"/>
-                    <ToolbarSpacer />
-                        <ToolbarSpacer />
-                        <Button text="Eintrag Hinzufügen" press="onAddRow" icon= "sap-icon://add-activity" type= "Emphasized"/>
-                        <Button text="Löschen" press="onDeleteRow" icon="sap-icon://delete" tooltip="Wählen Eintrag zur Löschen)"/>
-                    
-                </Toolbar>
-
-                <Table id="timeTrackingTable" items="{timeTracking>/entries}" inset="false" growing="true" growingScrollToLoad="true" >
-                    <columns >
-                        <Column width="5%" >
+                <!-- Tab for Zeiterfassung anlegen -->
+                <IconTabFilter text="Zeiterfassung anlegen"  key="add">
+                    <VBox fitContainer="true">
+                        <Toolbar>
                             <Label />
-                        </Column>
-                        <Column width="20%">
-                            <Label text="Datum" />
-                        </Column>
-                        <Column width="30%">
-                            <Label text="Arbeitszeiten" />
-                        </Column>
-                        <Column width="10%">
-                            <Label text="Stunden" />
-                        </Column>
-                        <Column width="10%">
-                            <Label text="Pause (h)" />
-                        </Column>
-                    </columns>
-
-                    <items>
-                         <ColumnListItem >
+                            <ToolbarSpacer />
+                            <Button text="Eintrag Hinzufügen" press="onAddRow" icon="sap-icon://add-activity" type="Emphasized" />
+                            <Button text="Löschen" press="onDeleteRow" icon="sap-icon://delete" tooltip="Wählen Eintrag zur Löschen" />
+                        </Toolbar>
+                        <Table id="timeTrackingTable" items="{timeTracking>/entries}" inset="false" growing="true" growingScrollToLoad="true">
+                            <columns>
+                                <Column width="5%">
+                                    <Label />
+                                </Column>
+                                <Column width="20%">
+                                    <Label text="Datum" />
+                                </Column>
+                                <Column width="30%">
+                                    <Label text="Arbeitszeiten" />
+                                </Column>
+                                <Column width="10%">
+                                    <Label text="Stunden" />
+                                </Column>
+                                <Column width="10%">
+                                    <Label text="Pause (h)" />
+                                </Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem >
                             <cells>
                                 <CheckBox selected="{timeTracking>selected}" />
                                 <DatePicker value="{timeTracking>date}" id="datePicker" displayFormat="dd.MM.yyyy" />
@@ -89,15 +121,18 @@
                                                 (${timeTracking>session2Start}.split(':')[1] - ${timeTracking>session1End}.split(':')[1])) / 60).toFixed(2) + ' h' : '0 h' }" />
                             </cells>
                         </ColumnListItem>
-                    </items>
-                </Table>
-            </VBox>
-        <footer>
-            <Toolbar>
-            <ToolbarSpacer />
-                <Button id = "saveButton" text="Speichern" type="Accept" press="onSaveTimeTracking"/>
-                <Button text="Abbrechen" type="Reject" press="onCancelTimeTracking"/>
-            </Toolbar>
-        </footer>
+
+                            </items>
+                        </Table>
+                        <Toolbar>
+                            <ToolbarSpacer />
+                            <Button id="saveButton" text="Speichern" type="Accept" press="onSaveTimeTracking" />
+                            <Button text="Abbrechen" type="Reject" press="onCancelTimeTracking" />
+                        </Toolbar>
+                    </VBox>
+                </IconTabFilter>
+            </items>
+        </IconTabBar>
+
     </Page>
 </mvc:View>

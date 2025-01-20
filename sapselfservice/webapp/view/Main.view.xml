@@ -14,11 +14,6 @@
                     height="8em" 
                     width="17em" />
                 <IconTabHeader/>
-                <Button icon="sap-icon://search" type="Transparent">
-                    <layoutData>
-                        <OverflowToolbarLayoutData priority="NeverOverflow" />
-                    </layoutData>
-                </Button>
                 <Button icon="sap-icon://bell" type="Transparent" tooltip="Notification" press="onNotiPress"
 				ariaHasPopup="Dialog">
                     <layoutData>
@@ -51,7 +46,7 @@
                             height="100%" />
                         <Text 
                             id="welcomeText" 
-                            text="Guten Tag {= ${userModel>/Geschlecht} === 'männlich' ? 'Herr' : 'Frau' } {userModel>/Nachname}!" 
+                            text="Guten Tag, {= ${userModel>/Geschlecht} === 'männlich' ? 'Herr' : 'Frau' } {userModel>/Nachname}!" 
                             class="welcomeText" />
                     </Panel>
                     
@@ -122,6 +117,14 @@
                             <VBox height="5rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
                                 <core:Icon src="sap-icon://family-care" size="2.5rem" class="sapUiTinyMarginBottom" />
                                 <Title text="Meine Familienmitglieder" wrapping="false" textAlign="Center" class="tileText" />
+                            </VBox>
+                        </f:GridListItem>
+
+                        <!-- Meine Profil -->
+                        <f:GridListItem type="Active" press="onGenericTileProfilePress" class="item tilePANTONE382">
+                            <VBox height="5rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
+                                <core:Icon src="sap-icon://employee" size="2.5rem" class="sapUiTinyMarginBottom" />
+                                <Title text="Mein Profil" wrapping="false" textAlign="Center" class="tileText" />
                             </VBox>
                         </f:GridListItem>
                     </f:GridList>
