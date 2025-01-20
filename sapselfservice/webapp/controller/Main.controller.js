@@ -46,27 +46,30 @@ sap.ui.define(
           }
         }
 
-        // Weiter
-        try {
+ 
+         try {
+          // Asynchron abfragen, ob der User eine Führungskraft ist
           const isManager = await this._checkIfManager(oModel);
+
+          // Sichtbarkeit des GenericTiles entsprechend setzen
           const oTile = this.getView().byId("id.MangerGenericTile");
-          if (oTile) {
-            oTile.setVisible(isManager);
-          }
-        } catch (error) {
-          MessageToast.show("Fehler beim Abrufen der Rolle.");
+          oTile.setVisible(isManager);
+
+         
+        } 
+          catch (error) {
           console.error("Error fetching roles: ", error);
         }
         console.log(oModel.getProperty("/Nachname"));
 
-      if (oModel) {
+       if (oModel) {
         this.getView().setModel(oModel, "userModel");
         oModel.refresh(true);
 
         // Debug: Check if the control has the correct value
         var oText = this.getView().byId("welcomeText");
         console.log("Text control value after model refresh:", oText.getText());
-      }
+       }
       },
 
       _checkIfManager: async function (oModel) {

@@ -356,6 +356,9 @@ sap.ui.define(
           oSaveButton.setEnabled(isValid);
         }
       },
+      onNavBack: function () {
+        sap.ui.core.UIComponent.getRouterFor(this).navTo("Main");
+      },
     });
   }
 );
