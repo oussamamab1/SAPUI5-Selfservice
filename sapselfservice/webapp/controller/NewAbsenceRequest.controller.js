@@ -74,6 +74,7 @@ sap.ui.define(
       
         var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
         var urlaubkontingentField = this.byId("urlaubkontingent");
+        let defaultKontingent = 20; 
       
         firebase.db
           .collection("StelleRolle")
@@ -95,7 +96,7 @@ sap.ui.define(
             }
       
             // Set Urlaubkontingent based on Faktor
-            const defaultKontingent = faktor === 0.5 ? 10 : 20;
+            defaultKontingent = faktor === 0.5 ? 10 : 20;
             urlaubkontingentField.setText(defaultKontingent);
       
             return firebase.db
@@ -106,29 +107,30 @@ sap.ui.define(
           })
           .then((querySnapshot) => {
             if (querySnapshot.empty) {
-              console.log("No approved Urlaubsplan found. Using default kontingent.");
-              return;
+                console.log("No approved Urlaubsplan found. Using default kontingent.");
+                return;
             }
-      
+        
             const seineurlaubsplan = querySnapshot.docs.map((doc) => doc.data());
-            const neuesterUrlaubsplan = seineurlaubsplan.sort((a, b) => {
-              const dateA = new Date(a.Antragsdatum).getTime();
-              const dateB = new Date(b.Antragsdatum).getTime();
-              return dateB - dateA;
-            })[0];
-      
-            const urlaubkontingent = parseFloat(
-              neuesterUrlaubsplan?.UrlaubKontingent || 0
-            );
-            const geplanterUrlaubstage = parseFloat(
-              neuesterUrlaubsplan?.geplanterUrlaubstage || 0
-            );
-            const verbleibenderUrlaub = urlaubkontingent - geplanterUrlaubstage;
-      
+            let totalPlannedDays = 0;
+        
+            seineurlaubsplan.forEach((plan) => {
+                const geplanteTage = parseFloat(plan.geplanterUrlaubstage || 0);
+                if (!isNaN(geplanteTage)) {
+                    totalPlannedDays += geplanteTage;
+                } else {
+                    console.warn("Invalid geplanteTage in plan:", plan);
+                }
+            });
+        
+            const urlaubkontingent = parseFloat(defaultKontingent);
+            const verbleibenderUrlaub = urlaubkontingent - totalPlannedDays;
+        
+            console.log(`Total planned days: ${totalPlannedDays}`);
             urlaubkontingentField.setText(
-              !isNaN(verbleibenderUrlaub) ? verbleibenderUrlaub : urlaubkontingentField.getText()
+                !isNaN(verbleibenderUrlaub) ? verbleibenderUrlaub.toString() : urlaubkontingent
             );
-          })
+        })        
           .catch((error) => {
             console.error("Error fetching UrlaubKontingent:", error);
             urlaubkontingentField.setText(20); // Default fallback on error
