@@ -51,7 +51,7 @@
                             height="100%" />
                         <Text 
                             id="welcomeText" 
-                            text="Guten Tag, {userModel>/Nachname}!" 
+                            text="Guten Tag {= ${userModel>/Geschlecht} === 'männlich' ? 'Herr' : 'Frau' } {userModel>/Nachname}!" 
                             class="welcomeText" />
                     </Panel>
                     
@@ -62,7 +62,7 @@
                         </f:customLayout>
                        
                         <!-- Mitarbeiterdatenmanagement -->
-                        <f:GridListItem  type="Active" press="onGenericTileEmployeeDataPress" class="item tilePANTONE3272">
+                        <f:GridListItem  type="Active" press="onGenericTileEmployeeDataPress" class="item tilePANTONE3272" id ="id.MangerGenericTile" visible="false">
                             <VBox height="5rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
                                 <core:Icon src="sap-icon://activity-individual" size="2.5rem" class="sapUiTinyMarginBottom" />
                                 <Title text="Mitarbeiterdatenmanagement" wrapping="false" textAlign="Center" class="tileText" />

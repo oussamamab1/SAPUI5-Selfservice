@@ -561,6 +561,7 @@ sap.ui.define(
                       : ""
                   }`
                 );
+                sap.ui.core.UIComponent.getRouterFor(this).navTo("absenceOverview");
               });
           })
           .catch((error) => {
