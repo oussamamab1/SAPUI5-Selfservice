@@ -103,88 +103,126 @@ sap.ui.define(
       },
 
       onNotiPress: function () {
-    var oUserModel = sap.ui.getCore().getModel("userModel");
-    if (!oUserModel) {
-        sap.m.MessageToast.show("User model is not set!");
-        this.getOwnerComponent().getRouter().navTo("login");
-        return;
-    }
+        var that = this;
+    
+        var oUserModel = sap.ui.getCore().getModel("userModel");
+        if (!oUserModel) {
+            sap.m.MessageToast.show("User model is not set!");
+            this.getOwnerComponent().getRouter().navTo("login");
+            return;
+        }
+    
+        var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
+        var db = firebase.db;
+        var urlaubsplanRef = db.collection("Urlaubsplan");
+        var abwesenheitenRef = db.collection("Abwesenheiten");
+    
+        var urlaubsplanQuery = urlaubsplanRef
+            .where("Mitarbeiter-ID", "==", mitarbeiterId)
+            .where("Status", "in", ["Genehmigt", "Abgelehnt"]);
+    
+        var abwesenheitenQuery = abwesenheitenRef
+            .where("Mitarbeiter-ID", "==", mitarbeiterId)
+            .where("Status", "in", ["Genehmigt", "Abgelehnt"]);
+    
 
-    var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
-
-    // Check if Mitarbeiter-ID is available
-    if (!mitarbeiterId) {
-        sap.m.MessageToast.show("Mitarbeiter-ID is not available in the user model.");
-        return;
-    }
-
-    // Firestore references
-    var db = firebase.db;
-
-    var urlaubsplanRef = db.collection("Urlaubsplan");
-    var abwesenheitenRef = db.collection("Abwesenheiten");
-
-    // Query for Urlaubsplan
-    var urlaubsplanQuery = urlaubsplanRef
-        .where("Mitarbeiter-ID", "==", mitarbeiterId)
-        .where("Status", "in", ["Genehmigt", "Abgelehnt"]);
-
-    // Query for Abwesenheiten
-    var abwesenheitenQuery = abwesenheitenRef
-        .where("Mitarbeiter-ID", "==", mitarbeiterId)
-        .where("Status", "in", ["Genehmigt", "Abgelehnt"]);
-
-    Promise.all([urlaubsplanQuery.get(), abwesenheitenQuery.get()])
-        .then(function (querySnapshots) {
-            var notifications = [];
-
-            querySnapshots.forEach(function (querySnapshot) {
-                querySnapshot.forEach(function (doc) {
-                    var data = doc.data();
-                    notifications.push(data);
+        Promise.all([urlaubsplanQuery.get(), abwesenheitenQuery.get()])
+            .then(function (querySnapshots) {
+                var notifications = [];
+    
+                querySnapshots.forEach(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        var data = doc.data();
+    
+                        if (data.Antragsdatum && data.Antragsdatum.seconds) {
+                            const date = new Date(data.Antragsdatum.seconds * 1000);
+                            data.Antragsdatum = date.toLocaleDateString("en-GB", {
+                                weekday: "short",
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                            });
+                        }
+    
+                        notifications.push(data);
+                    });
                 });
-            });
-
-            // Sort notifications by a timestamp field, assuming "Erstellungsdatum"
-            notifications.sort(function (a, b) {
-                return new Date(b.Erstellungsdatum) - new Date(a.Erstellungsdatum);
-            });
-
-            // Display notifications in a dialog
-            var oDialog = new sap.m.Dialog({
-                title: "Benachrichtigungen",
-                contentWidth: "400px",
-                contentHeight: "300px",
-                resizable: true,
-                draggable: true,
-                content: new sap.m.List({
-                    items: notifications.map(function (notification) {
-                        return new sap.m.StandardListItem({
-                            title: notification.Status,
-                            description: notification.Beschreibung || "No description available",
-                            info: notification.Erstellungsdatum || "",
-                            infoState: notification.Status === "Genehmigt" ? "Success" : "Error",
+    
+                notifications.sort(function (a, b) {
+                    return new Date(b.Antragsdatum) - new Date(a.Antragsdatum);
+                });
+    
+                var notificationPromises = notifications.map(function (notification) {
+                    var icon = notification.Status === "Genehmigt" ? "sap-icon://accept" : "sap-icon://decline";
+                    var iconColor = notification.Status === "Genehmigt" ? "Success" : "Error";
+    
+                    return firebase.db
+                        .collection("Abwesenheitsart")
+                        .where("Abwesenheit-ID", "==", notification["Abwesenheit-ID"])
+                        .get()
+                        .then((querySnapshot) => {
+                            var abwesenheitsart = "Unbekannt";
+                            if (!querySnapshot.empty) {
+                                abwesenheitsart = querySnapshot.docs[0].data().Beschreibung;
+                            }
+    
+                            return new sap.m.StandardListItem({
+                                title: notification.Antragsdatum,
+                                description: `Abwesenheitsart: ${abwesenheitsart}`,
+                                info: notification.Status,
+                                icon: icon,
+                                infoState: iconColor,
+                                type: "Active",
+                                press: function () {
+                                    UIComponent.getRouterFor(that).navTo("absenceOverview");
+                                }
+                            });
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching Abwesenheitsart: ", error);
+                            return null;
                         });
-                    })
-                }),
-                beginButton: new sap.m.Button({
-                    text: "Schließen",
-                    press: function () {
-                        oDialog.close();
+                });
+    
+                Promise.all(notificationPromises).then(function (notificationItems) {
+                    notificationItems = notificationItems.filter((item) => item !== null);
+    
+                    // Create dialog only once
+                    if (!that.oNotificationDialog) {
+                        that.oNotificationDialog = new sap.m.Dialog({
+                            title: "Benachrichtigungen",
+                            contentWidth: "400px",
+                            contentHeight: "300px",
+                            resizable: true,
+                            draggable: true,
+                            content: new sap.m.List(),
+                            beginButton: new sap.m.Button({
+                                text: "Schließen",
+                                press: function () {
+                                    that.oNotificationDialog.close();
+                                },
+                            }),
+                        });
                     }
-                }),
-                afterClose: function () {
-                    oDialog.destroy();
-                }
+    
+                    var oList = that.oNotificationDialog.getContent()[0];
+                    oList.removeAllItems();
+    
+                    notificationItems.forEach(function (item) {
+                        oList.addItem(item);
+                    });
+    
+                    that.oNotificationDialog.open();
+                });
+            })
+            .catch(function (error) {
+                console.error("Error fetching notifications: ", error);
+                sap.m.MessageToast.show("Fehler beim Abrufen der Benachrichtigungen.");
             });
-
-            oDialog.open();
-        })
-        .catch(function (error) {
-            console.error("Error fetching notifications: ", error);
-            sap.m.MessageToast.show("Fehler beim Abrufen der Benachrichtigungen.");
-        });
-},
+    },
+    
+    
+    
       
 
       onLogoutPress: function () {
