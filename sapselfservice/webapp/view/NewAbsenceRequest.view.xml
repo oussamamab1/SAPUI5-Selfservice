@@ -1,0 +1,73 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form"
+    controllerName="sapselfservice.controller.NewAbsenceRequest">
+
+    <Page >
+        <content>
+        <f:SimpleForm editable="false"
+        title= "Auswahl der Abwesenheitsart"
+                layout="ResponsiveGridLayout"
+                labelSpanL="3" labelSpanM="3" columnsL="1" columnsM="1">
+                        <Label text="Abwesenheitsart" />
+                        <Select id="absenceTypeSelect" forceSelection="true" change="onAbsenceTypeChange" items="{
+                            path: '/Abwesenheitsart',
+                            templateShareable: false
+                        }">
+                            <core:Item key="{Abwesenheit-ID}" text="{Beschreibung}" />
+                        </Select>
+                        <Label text="Verfügbare Urlaubstage" id="quotaLabel" />
+                        <Text id="urlaubkontingent" text="0" />
+                    </f:SimpleForm>
+                        
+            <VBox>
+                <Panel headerText="Allgemeine Daten">
+                    <VBox>
+                        <RadioButtonGroup id="radiobuttonsgroup" columns="2" select="onradioButtonChange">
+                            <RadioButton text="Mehr als ein Tag" />
+                            <RadioButton text="Ein Tag oder weniger" />
+                        </RadioButtonGroup>
+
+                        <VBox id="oneDayOrLess" visible="{= ${/selectedRadioButton} === 'oneDayOrLess' }">
+                            <Label text="Datum:" />
+                            <DatePicker id="datepicker" change="onDateChange" valueStateText="Ungültiges Datum"/>
+                            <Label text="Beginn:" />
+                            <TimePicker id="beginnTimePicker" change="onTimeChange" />
+                            <Label text="Ende:" />
+                            <TimePicker id="endTimePicker" change="onTimeChange" />
+                            <Label text="Dauer in Stunden:"/>
+                            <Input id="durationInput" value="Gearbeitete Stunden" enabled="false" />
+                        </VBox>
+
+                        <VBox id="moreThanOneDay" visible="{= ${/selectedRadioButton} === 'moreThanOneDay' }">
+                            <Label text="Zeitraum:" />
+                            <DateRangeSelection
+                                id="Zeitraum"
+                                showCurrentDateButton="true"
+                                showFooter="true"
+                                change="onDateChange" />
+                            <Label text="Dauer in Tage:" />
+                            <Input id="durationTagInput" value="urlaub Tag" enabled="false" />
+                        </VBox>
+
+                        <Label text="Genehmigender:" />
+                        <Input id="approverInput" value= "Abteilungsleiter" enabled="false" />
+
+                        <Label text="Neue Notiz" />
+                        <TextArea id="noteTextArea" rows="10" width="100%" placeholder="Füge eine Notiz hinzu..." maxLength="200" />
+                    </VBox>
+                </Panel>
+            </VBox>
+        </content>
+        <footer>
+            <Toolbar>
+                <ToolbarSpacer />
+                <Button id= "Savebutton" text="Sichern" type="Accept" press="onSaveRequest" />
+                <Button text="Abbrechen" type="Reject" press="onCancelRequest"/>
+            </Toolbar>
+        </footer>
+    </Page>
+</mvc:View>

@@ -1,0 +1,68 @@
+<mvc:View
+    controllerName="sapselfservice.controller.EmployeeDirectory"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+>
+    <Page title="Mitarbeiterverzeichnis" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <SearchField
+                width="100%"
+                placeholder="Mitarbeiter oder Rolle suchen..."
+                liveChange=".onSearchChanged"
+                showSearchButton="true"
+            />
+
+            <Button
+                id="idAlleAnzeigenButton"
+                text="Alle anzeigen"
+                press=".onResetSearch"
+                width="auto"
+               
+            />
+
+            <Table id="idEmployeeTable" items="{employees>/}">
+                <headerToolbar>
+                    <Toolbar>
+                        <Title text="Mitarbeiterübersicht" />
+                    </Toolbar>
+                </headerToolbar>
+                <columns>
+                    <Column>
+                        <Text text="Vorname" />
+                    </Column>
+                    <Column>
+                        <Text text="Nachname" />
+                    </Column>
+                    <Column>
+                        <Text text="Rolle" />
+                    </Column>
+                    <Column>
+                        <Text text="E-Mail" />
+                    </Column>
+                    <Column>
+                        <Text text="Notfallkontakt" />
+                    </Column>
+                </columns>
+                <items>
+                    <ColumnListItem>
+                        <cells>
+                            <Text text="{employees>Vorname}" />
+                            <Text text="{employees>Nachname}" />
+                            <Text text="{employees>role}" />
+                            <Text text="{employees>Email}" />
+                            <Text
+                                text="{
+                                    parts: [
+                                        {path: 'employees>emergencyContactName'},
+                                        {path: 'employees>emergencyContactPhone'}
+                                    ],
+                                    formatter: '.formatEmergencyContact'
+                                }"
+                            />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+    </Page>
+</mvc:View>

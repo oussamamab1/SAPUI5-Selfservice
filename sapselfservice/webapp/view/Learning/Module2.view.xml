@@ -1,0 +1,23 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.Module2"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="Modul 2: Verarbeitung personenbezogener Daten" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <ScrollContainer width="100%" height="100%" vertical="true">
+                <VBox class="sapUiMediumMargin">
+                    <Title text="2.1 Was sind personenbezogene Daten?" level="H2" />
+                    <Text text="Personenbezogene Daten sind Informationen, die sich auf eine identifizierte oder identifizierbare natürliche Person beziehen, wie Name, Adresse, Geburtsdatum oder Kontodaten." wrapping="true" />
+                    <Text text="Besondere Kategorien personenbezogener Daten umfassen sensible Informationen wie ethnische Herkunft, politische Meinungen oder Gesundheitsdaten." wrapping="true" />
+
+                    <Title text="2.2 Erlaubte Verarbeitung personenbezogener Daten" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Personenbezogene Daten dürfen nur verarbeitet werden, wenn eine rechtliche Grundlage vorliegt, z. B. Einwilligung der betroffenen Person, Vertragserfüllung oder berechtigtes Interesse." wrapping="true" />
+
+                    <Title text="2.3 Anforderungen an die Einwilligung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Die Einwilligung muss freiwillig, spezifisch, informiert und eindeutig sein. Die betroffene Person muss die Möglichkeit haben, die Einwilligung jederzeit zu widerrufen." wrapping="true" />
+                </VBox>
+            </ScrollContainer>
+        </content>
+    </Page>
+</mvc:View>

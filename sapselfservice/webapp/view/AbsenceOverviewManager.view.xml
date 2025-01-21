@@ -1,0 +1,104 @@
+<mvc:View
+    controllerName="sapselfservice.controller.AbsenceOverviewManager"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <App>
+        <Page
+            title="Abwesenheiten genehmigen"
+            showNavButton="true"
+            navButtonPress=".onNavBack">
+            
+            <content>
+                <Table
+                    items="{absencesModel>/Absences}"
+                    noData="{absencesModel>/noDataMessage}">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text="Abwesenheitsanträge (in Bearbeitung)" />
+                        </Toolbar>
+                    </headerToolbar>
+
+                    <columns>
+                        <!-- Spalte 1: Name -->
+                        <Column>
+                            <Text text="Name" />
+                        </Column>
+
+                        <!-- Spalte 2: Abwesenheitsart -->
+                        <Column>
+                            <Text text="Abwesenheitsart" />
+                        </Column>
+
+                        <!-- Spalte 3: Startdatum -->
+                        <Column>
+                            <Text text="Startdatum" />
+                        </Column>
+
+                        <!-- Spalte 4: Enddatum -->
+                        <Column>
+                            <Text text="Enddatum" />
+                        </Column>
+
+                        <!-- Spalte 5: Status -->
+                        <Column>
+                            <Text text="Status" />
+                        </Column>
+
+                        <!-- Spalte 6: Aktionen -->
+                        <Column>
+                            <Text text="Aktionen" />
+                        </Column>
+                    </columns>
+
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <!-- Name -->
+                                <ObjectIdentifier title="{absencesModel>DisplayName}" />
+
+                                <!-- Abwesenheitsart -->
+                                <ObjectIdentifier title="{absencesModel>AbwesenheitsartBeschreibung}" />
+
+                                <!-- Startdatum -->
+                                <ObjectIdentifier title="{absencesModel>FormattedStart}" />
+
+                                <!-- Enddatum -->
+                                <ObjectIdentifier title="{absencesModel>FormattedEnd}" />
+
+                                <!-- Status -->
+                                <ObjectStatus text="{absencesModel>Status}" />
+
+                                <!-- Aktionen -->
+                                <HBox>
+                                    <!-- Details-Button -->
+                                    <Button
+                                        
+                                        type="Emphasized"
+                                        icon="sap-icon://hint"
+                                        press=".onShowDetails" />
+
+                                    <!-- Genehmigen-Button -->
+                                    <Button
+                                        text="Genehmigen"
+                                        type="Accept"
+                                        icon="sap-icon://accept"
+                                        press=".onApproveAbsence" />
+
+                                    <!-- Ablehnen-Button -->
+                                    <Button
+                                        text="Ablehnen"
+                                        type="Reject"
+                                        icon="sap-icon://decline"
+                                        class="sapUiSmallMarginBegin"
+                                        press=".onRejectAbsence" />
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </content>
+        </Page>
+    </App>
+</mvc:View>

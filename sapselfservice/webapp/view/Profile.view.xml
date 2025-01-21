@@ -1,0 +1,104 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout.form"
+    controllerName="sapselfservice.controller.Profile"
+    xmlns:core="sap.ui.core">
+    <Page id="_IDGenPage" title="Profil" showNavButton="true" navButtonPress="onNavBack">
+        
+        <headerContent>
+                    
+                        <HBox id="_IDGenHBox">
+                            <Text id="_IDGenText" text="{userModel>/vorname}" />
+                            <Text id="_IDGenText1" text="{userModel>/nachname}" class="margin-left-3" />
+                            <Text id="_IDGenText2" text="/{userModel>/mitarbeiterId}" class="margin-left-3" />
+                            <Text id="_IDGenText3" text="({userModel>/position})" class="lighterText margin-left-20" />
+                        </HBox>
+
+                   
+        </headerContent>
+    
+        <content>
+            <!-- Persönliche Daten -->
+            <l:SimpleForm
+                id="personalDataForm"
+                editable="false"
+                title="Persönliche Daten"
+                layout="ResponsiveGridLayout"
+                labelSpanL="3" labelSpanM="3" columnsL="1" columnsM="1" >
+
+                <Label id="_IDGenLabel" text="Anrede" />
+                <Text id="_IDGenText4" text="{= ${userModel>/Geschlecht} === 'männlich' ? 'Herr' : 'Frau' }" />
+           
+                <Label id="_IDGenLabel1" text="Vorname" class="margin-top-6"/>
+                <Input id="firstNameInput" value="{userModel>/Vorname}" enabled="false" />
+           
+                <Label id="_IDGenLabel3" text="Nachname" class="margin-top-6"/>
+                <Input id="lastNameInput" value="{userModel>/Nachname}" enabled="false" />
+
+                <!-- Adress-->
+                <Label id="_IDGenLabel2" text="Straße " class="margin-top-6"/>
+                <Input id="streetInput" value="{userModel>/Straße}" enabled="false"/>
+                <Label id="_IDGenLabel11" text="Hausnummer" class="margin-top-6"/>
+                <Input id="houseInput" value="{userModel>/Hausnummer}" enabled="false" type="Number" />
+                <Label id="_placeLabel13" text="Ort" class="margin-top-6"/>
+                <Input id="placeInput" value="{userModel>/Ort}" enabled="false"/>
+                <Label id="_IDGenLabel15" text="Postleitzahl" class="margin-top-6"/>
+                <Input id="postcodeInput" value="{userModel>/Postleitzahl}" enabled="false"  type="Number" />
+                <Label id="_sex" text="Geschlecht" class="margin-top-6"/>
+                <Select
+                    id="sexSelect"
+                    items="{
+                        path: '/genders',
+                        templateShareable: true
+                    }"
+                    enabled="false"
+                    selectedKey="{userModel>/Geschlecht}">
+                    <core:Item key="{key}" text="{text}" />
+                </Select>
+
+
+                <Label id="_IDGenLabel4" text="Geburtsdatum" class="margin-top-6"/>
+                <Text id="_IDGenText5" text="{userModel>/Geburtsdatum}" class="margin-top-6"/>
+
+                <Label id="_IDGenLabel5" text="Geburtsort" />
+                <Text id="_IDGenText6" text="{userModel>/Geburtsort}" />
+
+                <Label id="_IDGenLabel6" text="Geburtsland" />
+                <Text id="_IDGenText7" text="{userModel>/Geburtsland}" />
+                <Label id="_IDGenLabel8" text="Nationalität" />
+                <Text id="_IDGenText9" text="{userModel>/Nationalität}" />
+
+            </l:SimpleForm>
+          
+            <Toolbar id="_IDGenToolbar">
+                <ToolbarSpacer id="_IDGenToolbarSpacer" />
+                <Button id="savePersonalData" text="Speichern" type="Emphasized" press="onSavePersonalData" enabled="false" />
+                <Button id="editPersonalData" text="Bearbeiten" press="onEditPersonalData" />
+                 <Button id="cancelEditPersonalData"  text="Abbrechen" press="onCancelEditPersonalData" visible="false"/>
+            </Toolbar>
+
+            <!-- Bankdaten -->
+            <l:SimpleForm
+                id="bankDataForm"
+                title="Bankangaben"
+                layout="ResponsiveGridLayout"
+                labelSpanL="3" labelSpanM="3" columnsL="1" columnsM="1" >
+
+                <Label id="_IDGenLabel9" text="IBAN" />
+                <Input id="ibanInput" value="{userModel>/IBAN}" enabled="false" />
+
+                <Label id="_IDGenLabel10" text="BIC" />
+                <Input id="bicInput" value="{userModel>/BIC}" enabled="false"/>
+
+            </l:SimpleForm>
+          
+            <Toolbar id="_IDGenToolbar1">
+                <ToolbarSpacer id="_IDGenToolbarSpacer1" />
+                <Button text="Speichern" id="saveBankData" type="Emphasized" press="onSaveBankData" enabled="false" />
+                <Button text="Bearbeiten" id="editBankData" press="onEditBankData" />
+                 <Button text="Abbrechen" id="cancelEditBankData" press="onCancelEditBankData" visible="false"/>
+            </Toolbar>
+        </content>
+    </Page>
+</mvc:View>

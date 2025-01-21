@@ -1,0 +1,116 @@
+<mvc:View 
+    controllerName="sapselfservice.controller.FamilyMembers"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout.form"
+    xmlns:core="sap.ui.core">
+
+    <Page
+        title="Meine Familienmitglieder"
+        showNavButton="true"
+        navButtonPress="onNavBack">
+        <content>
+            <!-- Tabelle für Familienmitglieder -->
+            <Table id="familyTable" items="{/familyMembers}">
+                <columns>
+                    <Column>
+                        <Text text="Name" />
+                    </Column>
+                    <Column>
+                        <Text text="Beziehung" />
+                    </Column>
+                    <Column>
+                        <Text text="Geburtsdatum" />
+                    </Column>
+                    <Column>
+                        <Text text="Aktion" />
+                    </Column>
+                </columns>
+                <items>
+                    <ColumnListItem>
+                        <cells>
+                            <Text text="{Name}" />
+                            <Text text="{Beziehung}" />
+                            <Text text="{Geburtsdatum}" />
+                            <Button
+                                text="Löschen"
+                                type="Negative"
+                                press="onDeleteFamilyMember"
+                                data-index="{= ${familyMembers>#}.split('/').pop() }" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+
+            <Toolbar>
+                <ToolbarSpacer />
+                <Button
+                    text="Familienmitglied hinzufügen"
+                    type="Emphasized"
+                    press="onAddFamilyMember" />
+            </Toolbar>
+
+            <!-- Notfallperson -->
+            <l:SimpleForm
+                id="emergencyContactForm"
+                layout="ResponsiveGridLayout"
+                labelSpanL="3"
+                labelSpanM="3"
+                columnsL="1"
+                columnsM="1"
+                title="Notfallkontakt">
+                <Label text="Name" />
+                <Input id="emergencyContactName" placeholder="Name des Notfallkontakts" value="{/emergencyContact/Name}" enabled="{/isEditingEmergencyContact}" />
+                <Label text="Telefonnummer" />
+                <Input id="emergencyContactPhone" placeholder="Telefonnummer" value="{/emergencyContact/Telefonnummer}" enabled="{/isEditingEmergencyContact}" />
+            </l:SimpleForm>
+
+            <Toolbar>
+                <ToolbarSpacer />
+                <Button
+                    text="{= ${/isEditingEmergencyContact} ? 'Abbrechen' : 'Bearbeiten' }"
+                    press="onToggleEditEmergencyContact" />
+                <Button
+                    text="Speichern"
+                    type="Emphasized"
+                    press="onSaveEmergencyContact"
+                    enabled="{/isEditingEmergencyContact}" />
+            </Toolbar>
+        </content>
+
+        <!-- Dialog zum Hinzufügen eines neuen Familienmitglieds -->
+        <Dialog
+            id="addFamilyDialog"
+            title="Familienmitglied hinzufügen">
+            <content>
+                <l:SimpleForm
+                    layout="ResponsiveGridLayout"
+                    labelSpanL="3"
+                    labelSpanM="3"
+                    columnsL="1"
+                    columnsM="1">
+                    <Label text="Name" />
+                    <Input id="nameInput" placeholder="Name des Familienmitglieds" />
+                    <Label text="Beziehung" />
+                    <Select id="relationshipSelect" selectedKey="">
+                        <core:Item key="Vater" text="Vater" />
+                        <core:Item key="Mutter" text="Mutter" />
+                        <core:Item key="Kind" text="Kind" />
+                        <core:Item key="Tochter" text="Tochter" />
+                        <core:Item key="Sohn" text="Sohn" />
+                        <core:Item key="Ehemann" text="Ehemann" />
+                        <core:Item key="Ehefrau" text="Ehefrau" />
+                    </Select>
+                    <Label text="Geburtsdatum" />
+                    <DatePicker id="birthDatePicker" displayFormat="dd.MM.yyyy" />
+                </l:SimpleForm>
+            </content>
+            <beginButton>
+                <Button text="Hinzufügen" press="onConfirmAddFamilyMember" />
+            </beginButton>
+            <endButton>
+                <Button text="Abbrechen" press="onCancelAddFamilyMember" />
+            </endButton>
+        </Dialog>
+    </Page>
+</mvc:View>
