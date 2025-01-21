@@ -1,0 +1,203 @@
+.gridSpacing {
+    position: relative;
+    display: grid;
+    min-width: 1397px;
+    column-gap: 20em;
+    grid-gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(100%, 1rem));
+    justify-content: stretch;
+    padding: 1rem;
+}
+
+.tileText {
+    font-size: 1rem; 
+    font-weight: 1350; 
+    color: white; 
+    text-align: center;
+}
+.item:hover{
+    border-color: rgb(150, 0, 15);
+    background-color: rgb(70, 65, 60);
+}
+.item{
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: white;
+}
+
+.tilePANTONE3272 {
+    background-color: rgb(0, 150, 130);
+    color: white;
+}
+
+.tilePANTONE638 {
+    background-color: rgb(75, 190, 225); 
+    color: white;
+}
+
+.tilePANTONE382 {
+    background-color: rgb(155, 195, 40); 
+    color: white;
+}
+
+.tilePANTONEViolet {
+    background-color: rgb(65, 40, 130); 
+    color: white;
+}
+
+.tilePANTONE234 {
+    background-color: rgb(130, 20, 80); 
+    color: white;
+}
+
+.tilePANTONE151 {
+    background-color: rgb(255, 121, 0); 
+}
+
+.lighterText {
+    font-weight: 100;
+    font-size: small;
+    color: #6a6a6a; 
+}
+.margin-left-3{
+    margin-left: 3px;
+}
+.margin-left-20{
+    margin-left: 20px;
+}
+.margin-top-6{
+    margin-top: 6px;
+}
+.meinezeitererfassungCSS{
+    font-weight: 550;
+    font-size: large;
+    color: black;
+}
+.backgroundCSS{
+    background-color: #e9f5fc;
+}
+
+.noScroll {
+    overflow: hidden; /* Prevent scrollbars */
+    height: 100%; 
+    min-width: 1397px;
+}
+.noScroll * {
+    overflow: hidden !important; /* Apply to all child elements */
+}
+
+.welcomeBannerImage {
+    position: absolute; 
+    width: 100%;
+    height: 100%; 
+    object-fit: cover; 
+    z-index: 1; 
+}
+
+.welcomeText {
+    position: absolute; 
+    height: fit-content;
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    font-size: 40px; 
+    font-weight: bold; 
+    color: white; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); 
+    z-index: 2; 
+}
+
+
+.loginPage {
+    background-color: rgb(170, 165, 160);
+    height: 100vh;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.outerVBox {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.loginHBox {
+    width: 80%;
+    min-width: 900px;
+    min-height: 600px;
+    max-width: 1800px;
+    height: 800px;
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 7px 9px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.leftPanel {
+    background: linear-gradient(to bottom right, rgb(225, 0, 25), rgb(150, 0, 15));
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.rightPanel {
+    background-color: #ffffff;
+    padding: 3rem;
+    text-align: center;
+}
+
+.welcomeTitle {
+    color: rgb(70, 65, 60);
+    font-family: Arial;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.inputField {
+    width: 100%;
+    margin: 0.5rem 0;
+}
+
+/* Style the custom button */
+.customButton {
+    background-color: rgb(150, 0, 15);
+    color: white;
+    margin-top: 2rem;
+    border-radius: 0.75rem;
+    font-size: 1.2rem;
+    text-align: center;
+    height: 1.8rem; /* Set fixed height */
+    width: 16rem; /* Set fixed width */
+    letter-spacing: 0.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: block; /* Ensure it behaves as a block element */
+    box-sizing: border-box; /* Ensure padding is within the width */
+}
+
+/* Hover effect */
+.customButton:hover {
+    border-color: rgb(225, 0, 25);
+    background-color: rgb(225, 0, 25);
+}
+
+/* Style for the text inside the button */
+.logintext {
+    font-family:  Helvetica;
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    margin: 0; 
+}
+
+.buttonHBox {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex; /* Ensure it uses flexbox for layout */
+    justify-content: center; /* Center the content horizontally */
+    align-items: center; /* Center the content vertically */
+    width: 100%; /* Make sure the HBox takes the full width */
+}

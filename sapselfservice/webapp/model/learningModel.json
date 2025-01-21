@@ -1,0 +1,254 @@
+{
+    "questions": [
+        {
+            "question": "Was ist das Ziel des Datenschutzes?",
+            "options": [
+                "Die Privatsphäre von Personen zu schützen",
+                "Daten für Marketingzwecke zu sammeln",
+                "Daten unbegrenzt zu speichern",
+                "Die Datenbank effizienter zu machen"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Gesetze regeln den Datenschutz in der EU?",
+            "options": [
+                "DSGVO und BDSG",
+                "Arbeitsrecht",
+                "Steuergesetze",
+                "Verkehrsrecht"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Informationen gelten als personenbezogene Daten?",
+            "options": [
+                "IP-Adresse und Name",
+                "Unpersönliche Statistiken",
+                "Finanzielle Unternehmensdaten",
+                "Anonyme Kundenumfragen"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was versteht man unter Zweckbindung?",
+            "options": [
+                "Daten dürfen nur für den angegebenen Zweck verwendet werden",
+                "Daten können beliebig genutzt werden",
+                "Zweckbindung ist optional",
+                "Daten müssen verschlüsselt werden"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Rechte haben betroffene Personen?",
+            "options": [
+                "Auskunft, Berichtigung und Löschung",
+                "Nur das Recht auf Widerspruch",
+                "Keine besonderen Rechte",
+                "Nur das Recht auf Datenübertragbarkeit"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was ist eine technische Maßnahme im Datenschutz?",
+            "options": [
+                "Datenverschlüsselung",
+                "Einführung von Arbeitszeitkontrollen",
+                "Verwendung von Druckern",
+                "Veröffentlichung von Fotos"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Maßnahme zählt zur Datenminimierung?",
+            "options": [
+                "Nur notwendige Daten zu erheben",
+                "Alle Daten zu sammeln",
+                "Daten länger zu speichern",
+                "Keine Maßnahmen zu treffen"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was versteht man unter Rechenschaftspflicht?",
+            "options": [
+                "Unternehmen müssen Datenschutzmaßnahmen dokumentieren",
+                "Nur der Datenschutzbeauftragte ist verantwortlich",
+                "Die Daten können beliebig verwendet werden",
+                "Es ist keine Dokumentation notwendig"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Wie lange dürfen personenbezogene Daten gespeichert werden?",
+            "options": [
+                "Nur so lange wie nötig",
+                "Mindestens 10 Jahre",
+                "Unbegrenzt",
+                "Für immer, wenn sie verschlüsselt sind"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was ist das Ziel der Clean-Desk-Policy?",
+            "options": [
+                "Vertrauliche Dokumente nicht offen liegen zu lassen",
+                "Einen sauberen Arbeitsplatz zu haben",
+                "Arbeitszeiten zu kontrollieren",
+                "Daten zu löschen"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Wann ist eine Einwilligung zur Datenverarbeitung gültig?",
+            "options": [
+                "Wenn sie freiwillig, informiert und eindeutig ist",
+                "Wenn der Arbeitgeber es verlangt",
+                "Immer, wenn Daten erhoben werden",
+                "Einwilligungen sind nicht notwendig"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was sollten Sie tun, wenn Sie eine Datenpanne feststellen?",
+            "options": [
+                "Die Panne sofort melden",
+                "Die Panne ignorieren",
+                "Die Daten selbst reparieren",
+                "Die Panne in einer Woche melden"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Rechte gewährt die DSGVO bezüglich gespeicherter Daten?",
+            "options": [
+                "Recht auf Auskunft und Löschung",
+                "Nur das Recht auf Berichtigung",
+                "Keine Rechte",
+                "Nur das Recht auf Datenübertragbarkeit"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Sicherheitsmaßnahme ist bei E-Mails mit vertraulichen Daten wichtig?",
+            "options": [
+                "Verschlüsselung der Nachricht",
+                "Den Betreff deutlich markieren",
+                "E-Mails unbeaufsichtigt senden",
+                "Öffentliche Geräte nutzen"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was versteht man unter Datenübertragbarkeit?",
+            "options": [
+                "Personen können ihre Daten in einem strukturierten Format erhalten",
+                "Daten dürfen zwischen Unternehmen ausgetauscht werden",
+                "Daten können immer öffentlich zugänglich gemacht werden",
+                "Daten dürfen ohne Zustimmung geteilt werden"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Maßnahmen sind bei der Nutzung mobiler Geräte wichtig?",
+            "options": [
+                "Passwortschutz und Verschlüsselung",
+                "Geräte öffentlich verfügbar machen",
+                "Daten ohne Schutz speichern",
+                "Keine Maßnahmen sind notwendig"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was versteht man unter Speicherbegrenzung?",
+            "options": [
+                "Daten nur so lange wie nötig zu speichern",
+                "Daten unbegrenzt zu speichern",
+                "Daten regelmäßig zu löschen",
+                "Daten nie zu speichern"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Maßnahme schützt Daten vor unbefugtem Zugriff?",
+            "options": [
+                "Zugriffskontrollen",
+                "Daten auf einem USB-Stick speichern",
+                "E-Mails ohne Verschlüsselung senden",
+                "Passwörter öffentlich teilen"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was sollten Sie tun, wenn Sie Fotos von Personen veröffentlichen möchten?",
+            "options": [
+                "Immer die Einwilligung der betroffenen Personen einholen",
+                "Die Fotos ohne Zustimmung veröffentlichen",
+                "Fotos anonymisieren",
+                "Fotos sind immer öffentlich erlaubt"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Maßnahmen zählen zu den TOMs?",
+            "options": [
+                "Verschlüsselung und Schulungen",
+                "Öffentliche Nutzung von Geräten",
+                "Datenpannen ignorieren",
+                "Unverschlüsselte Daten speichern"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Aufgabe hat ein Datenschutzbeauftragter?",
+            "options": [
+                "Die Einhaltung der DSGVO überwachen",
+                "Unternehmensfinanzen verwalten",
+                "Datenbanken löschen",
+                "Keine Aufgaben"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Rechte können betroffene Personen bei der Datenverarbeitung geltend machen?",
+            "options": [
+                "Widerspruch gegen die Verarbeitung",
+                "Nur das Recht auf Zugang",
+                "Keine Rechte",
+                "Daten ohne Kontrolle speichern"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Wie können Sie die Integrität von Daten sicherstellen?",
+            "options": [
+                "Durch regelmäßige Sicherheitsprüfungen",
+                "Durch Datenverlust",
+                "Durch Zugriff für alle Mitarbeiter",
+                "Keine Maßnahmen erforderlich"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Was ist der Unterschied zwischen Datenschutz und Datensicherheit?",
+            "options": [
+                "Datenschutz schützt Personen, Datensicherheit schützt Daten",
+                "Es gibt keinen Unterschied",
+                "Datensicherheit betrifft nur Passwörter",
+                "Datenschutz ist weniger wichtig"
+            ],
+            "correct": 0
+        },
+        {
+            "question": "Welche Maßnahme ist für Backups wichtig?",
+            "options": [
+                "Regelmäßige Erstellung und sichere Aufbewahrung",
+                "Keine Backups notwendig",
+                "Daten ungesichert speichern",
+                "Backups nur einmal im Jahr erstellen"
+            ],
+            "correct": 0
+        }
+    ]
+}

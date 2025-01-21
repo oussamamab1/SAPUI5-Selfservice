@@ -1,0 +1,20 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.Modules"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <App>
+        <Page title="Datenschutz-Schulung" showNavButton="true" navButtonPress="onNavBack">
+            <VBox class="sapUiMediumMargin">
+                <!-- Button für jedes Modul mit spezifischer Funktion -->
+                <Button text="Modul 1: Einführung in den rechtlichen Datenschutz" press="onModule1Press" />
+                <Button text="Modul 2: Verarbeitung personenbezogener Daten" press="onModule2Press" />
+                <Button text="Modul 3: Grundsätze der Datenverarbeitung" press="onModule3Press" />
+                <Button text="Modul 4: Rechte der betroffenen Personen" press="onModule4Press" />
+                <Button text="Modul 5: Datenschutz im beruflichen Alltag" press="onModule5Press" />
+                <Button text="Modul 6: Technische und organisatorische Maßnahmen" press="onModule6Press" />
+                <Button text="Quiz: Testen Sie Ihr Wissen" press="onQuizPress" />
+            </VBox>
+        </Page>
+    </App>
+</mvc:View>

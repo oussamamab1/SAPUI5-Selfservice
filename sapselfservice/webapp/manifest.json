@@ -1,0 +1,362 @@
+{
+  "_version": "1.65.0",
+  "sap.app": {
+    "id": "sapselfservice",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.15.3",
+      "toolsId": "35a7d11c-cef1-4ded-a911-250e5af59785"
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.131.1",
+      "libs": {
+        "sap.f": {},
+        "sap.ui.core": {},
+				"sap.ui.layout": {},
+				"sap.m": {},
+				"sap.ui.unified": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sapselfservice.i18n.i18n"
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ],
+      "js": [{
+        "uri": "backend/firebase.js"
+      }]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "async": true,
+        "viewPath": "sapselfservice.view",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "clearControlAggregation": false
+      },
+      "routes": [
+        {
+          "name": "login",
+          "pattern": ":?query:",
+          "target": ["TargetLogin"]
+        },
+        {
+          "name": "Main",
+          "pattern": "Main",
+          "target": ["TargetMain"]
+        },
+
+        {
+          "name": "Calendar",
+          "pattern": "Calendar",
+          "target": "Calendar"
+        },
+
+        {
+          "name": "Modules",
+          "pattern": "Modules",
+          "target": "Modules"
+        },
+        {
+          "name": "Module1",
+          "pattern": "Module1",
+          "pattern": "Module1",
+          "name": "Module1",
+          "pattern": "Module1",
+          "name": "Module1",
+          "target": "Module1"
+        },
+        {
+          "name": "Module2",
+          "pattern": "Module2",
+          "pattern": "Module2",
+          "name": "Module2",
+          "pattern": "Module2",
+          "name": "Module2",
+          "target": "Module2"
+        },
+        {
+          "name": "Module3",
+          "pattern": "Module3",
+          "pattern": "Module3",
+          "name": "Module3",
+          "pattern": "Module3",
+          "name": "Module3",
+          "target": "Module3"
+        },
+        {
+          "name": "Module4",
+          "pattern": "Module4",
+          "pattern": "Module4",
+          "name": "Module4",
+          "pattern": "Module4",
+          "name": "Module4",
+          "target": "Module4"
+        },
+        {
+          "name": "Module5",
+          "pattern": "Module5",
+          "pattern": "Module5",
+          "name": "Module5",
+          "pattern": "Module5",
+          "name": "Module5",
+          "target": "Module5"
+        },
+        {
+          "name": "Module6",
+          "pattern": "Module6",
+          "pattern": "Module6",
+          "name": "Module6",
+          "pattern": "Module6",
+          "name": "Module6",
+          "target": "Module6"
+        },
+        {
+          "name": "Quiz",
+          "pattern": "Quiz",
+          "pattern": "Quiz",
+          "name": "Quiz",
+          "pattern": "Quiz",
+          "name": "Quiz",
+          "target": "Quiz"
+        },
+        {
+          "name": "FailurePage",
+          "pattern": "FailurePage",
+          "pattern": "FailurePage",
+          "name": "FailurePage",
+          "pattern": "FailurePage",
+          "name": "FailurePage",
+          "target": "FailurePage"
+        },
+        {
+          "name": "profile",
+          "pattern": "Profile",
+          "pattern": "Profile",
+          "name": "profile",
+          "pattern": "Profile",
+          "name": "profile",
+          "target": "profile"
+        },
+        {
+          "name": "absenceOverview",
+          "pattern": "AbsenceOverview",
+          "pattern": "AbsenceOverview",
+          "name": "absenceOverview",
+          "pattern": "AbsenceOverview",
+          "name": "absenceOverview",
+          "target": "absenceOverview"
+        },
+        {
+          "name": "newAbsenceRequest",
+          "pattern": "NewAbsenceRequest",
+          "pattern": "NewAbsenceRequest",
+          "name": "newAbsenceRequest",
+          "pattern": "NewAbsenceRequest",
+          "name": "newAbsenceRequest",
+          "target": "newAbsenceRequest"
+        },
+        {
+          "name": "TimeTracking",
+          "pattern": "TimeTracking",
+          "target": "TimeTracking"
+        },
+        {
+          "name": "PayStatements",
+          "pattern": "PayStatements",
+          "target": "PayStatements"
+        },
+        {
+          "name": "AbsenceOverviewManager",
+          "pattern": "AbsenceOverviewManager",
+          "target": "AbsenceOverviewManager"
+        },
+        {
+          "name": "AbsenceDetailsManager",
+          "pattern": "AbsenceDetailsManager/{MitarbeiterID}",
+          "target": "AbsenceDetailsManager"
+        },
+        {
+          "name": "EmployeeDirectory",
+          "pattern": "EmployeeDirectory",
+          "target": "EmployeeDirectory"
+        },
+        {
+          "name": "FamilyMembers",
+          "pattern": "FamilyMembers",
+          "target": "FamilyMembers"
+        },
+        {
+          "name": "TaxStatements",
+          "pattern": "TaxStatements",
+          "target": "TaxStatements"
+        }
+      ],
+      "targets": {
+        "TargetLogin": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "Login",
+          "viewName": "Login"
+        },
+        "Calendar": {
+          "viewName": "Calendar",
+          "viewLevel": 3,
+          "viewId": "Calendar"
+        },
+        "EmployeeDirectory": {
+          "viewName": "EmployeeDirectory",
+          "viewLevel": 3,
+          "viewId": "EmployeeDirectory"
+        },
+        "FamilyMembers": {
+          "viewName": "FamilyMembers",
+          "viewLevel": 3,
+          "viewId": "FamilyMembers"
+        },
+        "TargetMain": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "Main",
+          "viewLevel": 2,
+          "viewName": "Main"
+        },
+        "FailurePage": {
+          "viewName": "Learning.FailurePage",
+          "viewLevel": 3,
+          "viewId": "FailurePage"
+        },
+        "Modules": {
+          "viewName": "Learning.Modules",
+          "viewLevel": 3,
+          "viewId": "Modules"
+        },
+        "Module1": {
+          "viewName": "Learning.Module1",
+          "viewLevel": 3,
+          "viewId": "Module1"
+        },
+        "Module2": {
+          "viewName": "Learning.Module2",
+          "viewLevel": 3,
+          "viewId": "Module2"
+        },
+        "Module3": {
+          "viewName": "Learning.Module3",
+          "viewLevel": 3,
+          "viewId": "Module3"
+        },
+        "Module4": {
+          "viewName": "Learning.Module4",
+          "viewLevel": 3,
+          "viewId": "Module4"
+        },
+        "Module5": {
+          "viewName": "Learning.Module5",
+          "viewLevel": 3,
+          "viewId": "Module5"
+        },
+        "Module6": {
+          "viewName": "Learning.Module6",
+          "viewLevel": 3,
+          "viewId": "Module6"
+        },
+        "Quiz": {
+          "viewName": "Learning.Quiz",
+          "viewLevel": 3,
+          "viewId": "Quiz"
+        },
+        "profile": {
+          "viewName": "Profile",
+          "viewLevel": 3,
+          "viewId": "Profile"
+        },
+        "absenceOverview": {
+          "viewName": "AbsenceOverview",
+          "viewLevel": 3,
+          "viewId": "absenceOverview"
+        },
+        "newAbsenceRequest": {
+          "viewName": "NewAbsenceRequest",
+          "viewLevel": 3,
+          "viewId": "NewAbsenceRequest"
+        },
+        "TimeTracking": {
+          "viewName": "TimeTracking",
+          "viewLevel": 3,
+          "viewId": "TimeTracking"
+        },
+        "PayStatements": {
+          "viewName": "PayStatements",
+          "viewLevel": 3,
+          "viewId": "PayStatements"
+        },
+        "AbsenceOverviewManager": {
+          "viewName": "AbsenceOverviewManager",
+          "viewLevel": 3,
+          "viewId": "AbsenceOverviewManager"
+        },
+        "TaxStatements": {
+          "viewName": "TaxStatements",
+          "viewLevel": 3,
+          "viewId": "TaxStatements"
+        },
+        "AbsenceDetailsManager": {
+          "viewName": "AbsenceDetailsManager",
+          "viewLevel": 2,
+          "viewId": "AbsenceDetailsManager"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "sapselfservice.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "App"
+    }
+  }
+}

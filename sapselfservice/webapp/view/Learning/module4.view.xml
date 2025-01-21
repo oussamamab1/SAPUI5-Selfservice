@@ -1,0 +1,31 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.Module4"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="Modul 4: Rechte der betroffenen Personen" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <ScrollContainer width="100%" height="100%" vertical="true">
+                <VBox class="sapUiMediumMargin">
+                    <Title text="4.1 Recht auf Auskunft" level="H2" />
+                    <Text text="Betroffene Personen können jederzeit Auskunft darüber verlangen, welche Daten über sie gespeichert sind, woher diese stammen und wofür sie verwendet werden." wrapping="true" />
+                    
+                    <Title text="4.2 Recht auf Berichtigung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Sind die gespeicherten Daten unvollständig oder fehlerhaft, haben Betroffene das Recht auf Berichtigung." wrapping="true" />
+                    
+                    <Title text="4.3 Recht auf Löschung (Recht auf Vergessenwerden)" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Personen können die Löschung ihrer Daten verlangen, wenn diese nicht mehr benötigt werden, die Einwilligung widerrufen wurde oder die Verarbeitung rechtswidrig ist." wrapping="true" />
+                    
+                    <Title text="4.4 Recht auf Einschränkung der Verarbeitung" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Betroffene können verlangen, dass ihre Daten nur eingeschränkt verarbeitet werden, z. B. während einer Prüfung auf Richtigkeit." wrapping="true" />
+                    
+                    <Title text="4.5 Recht auf Datenübertragbarkeit" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Personen können verlangen, dass ihre Daten in einem strukturierten, gängigen und maschinenlesbaren Format an sie oder einen anderen Verantwortlichen übermittelt werden." wrapping="true" />
+                    
+                    <Title text="4.6 Recht auf Widerspruch" level="H2" class="sapUiSmallMarginTop" />
+                    <Text text="Betroffene haben das Recht, der Verarbeitung ihrer Daten zu widersprechen, wenn diese auf berechtigtem Interesse oder Direktwerbung basiert." wrapping="true" />
+                </VBox>
+            </ScrollContainer>
+        </content>
+    </Page>
+</mvc:View>

@@ -1,0 +1,52 @@
+<mvc:View
+    controllerName="sapselfservice.controller.TaxStatements"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout">
+    <Page
+        title="Meine Lohnsteuerbescheinigungen"
+        showNavButton="true"
+        navButtonPress="onNavBack">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <!-- Filter Toolbar -->
+                <Toolbar>
+                    <Label text="Jahr" />
+                    <Select id="yearSelect" change="onFilterChange">
+                        <!-- Dynamically populated years -->
+                    </Select>
+                    <ToolbarSpacer />
+                    <Button text="Filter zurücksetzen" press="onResetFilter" />
+                </Toolbar>
+
+                <!-- Table for Tax Statements -->
+                <Table id="taxStatementTable" items="{taxStatements>/filteredTaxStatements}">
+                    <columns>
+                        <Column>
+                            <Text text="Jahr" />
+                        </Column>
+                        <Column>
+                            <Text text="Aktion" />
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{taxStatements>year}" />
+                                <Button text="Anzeigen" press="onTaxStatementViewPress" />
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+
+                <!-- PDF Preview -->
+                <Panel id="pdfPreviewPanel" headerText="Vorschau" visible="false">
+                    <VBox>
+                        <core:HTML id="pdfPreviewFrame" />
+                    </VBox>
+                </Panel>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

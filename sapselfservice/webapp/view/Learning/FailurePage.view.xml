@@ -1,0 +1,12 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.FailurePage"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="Nicht Bestanden">
+        <content>
+            <Text text="Leider haben Sie den Quiz nicht bestanden. Sie benötigen mindestens 80 %, um zu bestehen." wrapping="true" class="sapUiMediumMargin" />
+            <Button text="Zurück zur Schulung" press="onNavBackToModules" />
+        </content>
+    </Page>
+</mvc:View>

@@ -1,0 +1,17 @@
+<mvc:View
+    controllerName="sapselfservice.controller.Learning.Quiz"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+
+    <Page title="Quiz" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <VBox id="quizContent" visible="false" class="sapUiMediumMargin">
+                
+            </VBox>
+
+            <Text id="quizResult" visible="false" wrapping="true" class="sapUiMediumMargin" />
+
+            <Button id="btnSubmitQuiz" text="Abschließen" type="Emphasized" press="onSubmitQuiz" visible="false" />
+        </content>
+    </Page>
+</mvc:View>

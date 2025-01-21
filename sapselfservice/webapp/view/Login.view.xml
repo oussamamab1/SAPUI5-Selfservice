@@ -1,0 +1,41 @@
+<mvc:View controllerName="sapselfservice.controller.Login"
+    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    
+    <App id="AppID">
+        <Page id="Login" class="loginPage" showHeader="false">
+            <content>
+                <VBox fitContainer="true" alignItems="Center" justifyContent="Center" class="outerVBox">
+                    <HBox fitContainer="false" class="loginHBox">
+                        <!-- Left Panel -->
+                        <VBox class="leftPanel" width="50%" alignItems="Center" justifyContent="Center">
+                        </VBox>
+                        
+                        <!-- Right Panel -->
+                        <VBox class="rightPanel" width="50%" alignItems="Center" justifyContent="Center">
+                         <Image src="https://www.barrierefrei-studieren.de/sites/default/files/hs-rheinmain-logo.png" 
+                                class="zoomImage"
+                                height="8em" 
+                                width="17em" />
+                            <Title text="Willkommen zurück!" level="H2" class="welcomeTitle" />
+                            <Title/>
+                            <VBox width="16rem" alignItems="Center" justifyContent="Center">
+                                <Input id="uidID" width="16rem" placeholder="Benutzername" value="{login>/userid}" type="Email" class="inputField" />
+                                <Input id="passwID" width="16rem" placeholder="Passwort" type="Password" value="{login>/password}" class="inputField" />
+                                <CustomListItem type="Active" press="onLoginpress" class="customButton">
+                                    <HBox justifyContent="Center" alignItems="Center" class="buttonHBox">
+                                        <Text text="Login" class="logintext" />
+                                    </HBox>
+                                </CustomListItem>
+                            </VBox>
+
+
+
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </content>
+        </Page>
+    </App>
+</mvc:View>
