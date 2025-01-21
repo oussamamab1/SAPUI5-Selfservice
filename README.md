@@ -32,9 +32,11 @@ Windows/Linux: Strg + Shift + ö
 Mac: Cmd + Shift + ö
 ### 5. Abhängigkeiten installieren
 folgende Befehele im Terminal eingeben: 
->  cd wahlprojekt_sapui5/sapselfservice
->  npm install
->  npm run start
+
+-  cd wahlprojekt_sapui5/sapselfservice
+- npm install
+- >npm run start
+
 
 ### Support
 Falls Sie Unterstützung benötigen, wenden Sie sich bitte an:
