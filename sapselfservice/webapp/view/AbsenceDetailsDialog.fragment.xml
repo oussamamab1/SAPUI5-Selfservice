@@ -1,0 +1,79 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog title="Details zur Abwesenheit" class="sapUiResponsivePadding">
+        <content>
+            <VBox>
+                <!-- Bisherige Felder -->
+                <Label text="Name:" />
+                <Text text="{absencesModel>/SelectedAbsence/DisplayName}" />
+
+                <Label text="Abwesenheitsart:" />
+                <Text text="{absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung}" />
+
+                <Label text="Startdatum:" />
+                <Text text="{absencesModel>/SelectedAbsence/FormattedStart}" />
+
+                <Label text="Enddatum:" />
+                <Text text="{absencesModel>/SelectedAbsence/FormattedEnd}" />
+
+                <Label text="Status:" />
+                <Text text="{absencesModel>/SelectedAbsence/Status}" />
+
+                <!-- NEUE FELDER: Startzeit -->
+                <Label
+                  text="Startzeit:"
+                  visible="{
+                    = ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking'
+                      || ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking Wochenende'
+                  }"
+                />
+                <Text
+                  text="{absencesModel>/SelectedAbsence/Startzeit}"
+                  visible="{
+                    = ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking'
+                      || ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking Wochenende'
+                  }"
+                />
+
+                <!-- Endzeit -->
+                <Label
+                  text="Endzeit:"
+                  visible="{
+                    = ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking'
+                      || ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking Wochenende'
+                  }"
+                />
+                <Text
+                  text="{absencesModel>/SelectedAbsence/Endzeit}"
+                  visible="{
+                    = ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking'
+                      || ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking Wochenende'
+                  }"
+                />
+
+                <!-- Kommentare -->
+                <Label
+                  text="Kommentare:"
+                  visible="{
+                    = ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking'
+                      || ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking Wochenende'
+                      || ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Urlaub'
+                  }"
+                />
+                <Text
+                  text="{absencesModel>/SelectedAbsence/Kommentare}"
+                  visible="{
+                    = ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking'
+                      || ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Teleworking Wochenende'
+                      || ${absencesModel>/SelectedAbsence/AbwesenheitsartBeschreibung} === 'Urlaub'
+                  }"
+                  wrapping="true"
+                />
+            </VBox>
+        </content>
+        <beginButton>
+            <Button text="Schließen" press=".onCloseDetailsDialog" />
+        </beginButton>
+    </Dialog>
+</core:FragmentDefinition>

@@ -1,12 +1,13 @@
 sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
+    "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
     "sap/ui/core/format/DateFormat",
     "sapselfservice/backend/firebase",
   ],
-  function (Controller, JSONModel, MessageToast, DateFormat, firebase) {
+  function (Controller,Fragment, JSONModel, MessageToast, DateFormat, firebase) {
     "use strict";
 
     return Controller.extend(
@@ -526,7 +527,38 @@ sap.ui.define(
           });
           return oFormatter.format(oDate);
         },
+        // Details-Button-Funktion
+       onShowDetails: function (oEvent) {
+    var oContext = oEvent.getSource().getBindingContext("absencesModel");
+    var oSelectedAbsence = oContext.getObject();
 
+    var oModel = this.getView().getModel("absencesModel");
+    oModel.setProperty("/SelectedAbsence", oSelectedAbsence);
+
+    // Fragment laden und anzeigen
+    if (!this._oDetailsDialog) {
+        Fragment.load({
+            id: this.getView().getId(),
+            name: "sapselfservice.view.AbsenceDetailsDialog", 
+            controller: this
+        }).then(function (oDialog) {
+            this._oDetailsDialog = oDialog;
+            this.getView().addDependent(this._oDetailsDialog);
+            this._oDetailsDialog.open();
+        }.bind(this)).catch(function (error) {
+            console.error("Fehler beim Laden des Fragments:", error);
+        });
+    } else {
+        this._oDetailsDialog.open();
+    }
+},
+
+
+        onCloseDetailsDialog: function () {
+          if (this._oDetailsDialog) {
+            this._oDetailsDialog.close();
+          }
+        },
         onApproveAbsence: function (oEvent) {
           var oItemCtx = oEvent.getSource().getBindingContext("absencesModel");
           var oAbsenceData = oItemCtx.getObject();
