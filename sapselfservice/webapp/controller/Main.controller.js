@@ -3,24 +3,51 @@ sap.ui.define(
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
     "sap/ui/core/UIComponent",
+    "sap/m/Dialog",
+    "sap/m/Button",
+    "sap/m/Text",
     "sapselfservice/backend/firebase",
   ],
-  function (Controller, MessageToast, UIComponent, firebase) {
+  function (
+    Controller,
+    MessageToast,
+    UIComponent,
+    Dialog,
+    Button,
+    Text,
+    firebase
+  ) {
     "use strict";
 
     return Controller.extend("sapselfservice.controller.Main", {
-      /**
-       * Lifecycle-Methode: Initialisierung der View
-       */
       onInit: async function () {
-        // Prüfen, ob das userModel vorhanden ist
+        // 1) userModel vorhanden?
         var oModel = sap.ui.getCore().getModel("userModel");
-        if (!oModel || !oModel.getProperty("/Mitarbeiter-ID")) {
-          console.error("Mitarbeiter-ID nicht gefunden im userModel.");
-          return;
+        if (!oModel) {
+          // Session check
+          var sessionId = sessionStorage.getItem("currentSessionId");
+          if (sessionId) {
+            var userDataString = sessionStorage.getItem(sessionId);
+            if (userDataString) {
+              try {
+                var userData = JSON.parse(userDataString);
+                var oSessionModel = new sap.ui.model.json.JSONModel(userData);
+                sap.ui.getCore().setModel(oSessionModel, "userModel");
+                oModel = oSessionModel;
+              } catch (e) {
+                console.error("Fehler beim Parsen der Session:", e);
+              }
+            }
+          }
+          if (!oModel || !oModel.getProperty("/Mitarbeiter-ID")) {
+            // keine Session => login
+            this.getOwnerComponent().getRouter().navTo("login");
+            return;
+          }
         }
 
-        try {
+ 
+         try {
           // Asynchron abfragen, ob der User eine Führungskraft ist
           const isManager = await this._checkIfManager(oModel);
 
@@ -28,23 +55,25 @@ sap.ui.define(
           const oTile = this.getView().byId("id.MangerGenericTile");
           oTile.setVisible(isManager);
 
-          // Optional eine kleine Meldung zeigen, wenn kein Manager
-          if (!isManager) {
-            MessageToast.show("Kein Manager");
-          }
-        } catch (error) {
-          // Hier landen Fehler 
-          MessageToast.show("Fehler beim Abrufen der Rolle.");
+         
+        } 
+          catch (error) {
           console.error("Error fetching roles: ", error);
         }
+        console.log(oModel.getProperty("/Nachname"));
+
+       if (oModel) {
+        this.getView().setModel(oModel, "userModel");
+        oModel.refresh(true);
+
+        // Debug: Check if the control has the correct value
+        var oText = this.getView().byId("welcomeText");
+        console.log("Text control value after model refresh:", oText.getText());
+       }
       },
 
-      /**
-       * Hilfsfunktion: Prüft, ob der aktuelle Benutzer eine Führungskraft ist
-       */
       _checkIfManager: async function (oModel) {
         try {
-          // 1. Rollen-IDs für den angegebenen Mitarbeiter holen
           const stelleRolleSnapshot = await firebase.db
             .collection("StelleRolle")
             .where(
@@ -55,86 +84,234 @@ sap.ui.define(
             .get();
 
           if (stelleRolleSnapshot.empty) {
-            // Keine Rolle gefunden => kein Manager
             return false;
           }
 
-          // 2. Rollen-IDs extrahieren
           const rollenIds = stelleRolleSnapshot.docs.map(
             (doc) => doc.data()["Rollen-ID"]
           );
 
-          // 3. Rollen-Dokumente mit "in"-Abfrage (max. 10 IDs) holen
           const rolleSnapshot = await firebase.db
             .collection("Rolle")
             .where("Rollen-ID", "in", rollenIds)
             .get();
 
-          // 4. Prüfen, ob Rolle "Führungskraft" vorhanden ist
           return rolleSnapshot.docs.some(
             (doc) => doc.data().Rollenbezeichnung === "Führungskraft"
           );
         } catch (error) {
           console.error("Fehler bei der Firestore-Abfrage:", error);
-          throw error; // Fehler an onInit weitergeben
+          throw error;
         }
       },
 
-     
-      onGenericTileTimeTrackingPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("TimeTracking");
-        MessageToast.show("Zeiterfassung öffnen...");
+      onNotiPress: function () {
+        var that = this;
+    
+        var oUserModel = sap.ui.getCore().getModel("userModel");
+        if (!oUserModel) {
+            sap.m.MessageToast.show("User model is not set!");
+            this.getOwnerComponent().getRouter().navTo("login");
+            return;
+        }
+    
+        var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
+        var db = firebase.db;
+        var urlaubsplanRef = db.collection("Urlaubsplan");
+        var abwesenheitenRef = db.collection("Abwesenheiten");
+    
+        var urlaubsplanQuery = urlaubsplanRef
+            .where("Mitarbeiter-ID", "==", mitarbeiterId)
+            .where("Status", "in", ["Genehmigt", "Abgelehnt"]);
+    
+        var abwesenheitenQuery = abwesenheitenRef
+            .where("Mitarbeiter-ID", "==", mitarbeiterId)
+            .where("Status", "in", ["Genehmigt", "Abgelehnt"]);
+    
+
+        Promise.all([urlaubsplanQuery.get(), abwesenheitenQuery.get()])
+            .then(function (querySnapshots) {
+                var notifications = [];
+    
+                querySnapshots.forEach(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        var data = doc.data();
+    
+                        if (data.Antragsdatum && data.Antragsdatum.seconds) {
+                            const date = new Date(data.Antragsdatum.seconds * 1000);
+                            data.Antragsdatum = date.toLocaleDateString("en-GB", {
+                                weekday: "short",
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                            });
+                        }
+    
+                        notifications.push(data);
+                    });
+                });
+    
+                notifications.sort(function (a, b) {
+                    return new Date(b.Antragsdatum) - new Date(a.Antragsdatum);
+                });
+    
+                var notificationPromises = notifications.map(function (notification) {
+                    var icon = notification.Status === "Genehmigt" ? "sap-icon://accept" : "sap-icon://decline";
+                    var iconColor = notification.Status === "Genehmigt" ? "Success" : "Error";
+    
+                    return firebase.db
+                        .collection("Abwesenheitsart")
+                        .where("Abwesenheit-ID", "==", notification["Abwesenheit-ID"])
+                        .get()
+                        .then((querySnapshot) => {
+                            var abwesenheitsart = "Unbekannt";
+                            if (!querySnapshot.empty) {
+                                abwesenheitsart = querySnapshot.docs[0].data().Beschreibung;
+                            }
+    
+                            return new sap.m.StandardListItem({
+                                title: notification.Antragsdatum,
+                                description: `Abwesenheitsart: ${abwesenheitsart}`,
+                                info: notification.Status,
+                                icon: icon,
+                                infoState: iconColor,
+                                type: "Active",
+                                press: function () {
+                                    UIComponent.getRouterFor(that).navTo("absenceOverview");
+                                }
+                            });
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching Abwesenheitsart: ", error);
+                            return null;
+                        });
+                });
+    
+                Promise.all(notificationPromises).then(function (notificationItems) {
+                    notificationItems = notificationItems.filter((item) => item !== null);
+    
+                    // Create dialog only once
+                    if (!that.oNotificationDialog) {
+                        that.oNotificationDialog = new sap.m.Dialog({
+                            title: "Benachrichtigungen",
+                            contentWidth: "400px",
+                            contentHeight: "300px",
+                            resizable: true,
+                            draggable: true,
+                            content: new sap.m.List(),
+                            beginButton: new sap.m.Button({
+                                text: "Schließen",
+                                press: function () {
+                                    that.oNotificationDialog.close();
+                                },
+                            }),
+                        });
+                    }
+    
+                    var oList = that.oNotificationDialog.getContent()[0];
+                    oList.removeAllItems();
+    
+                    notificationItems.forEach(function (item) {
+                        oList.addItem(item);
+                    });
+    
+                    that.oNotificationDialog.open();
+                });
+            })
+            .catch(function (error) {
+                console.error("Error fetching notifications: ", error);
+                sap.m.MessageToast.show("Fehler beim Abrufen der Benachrichtigungen.");
+            });
+    },
+    
+    
+    
+      
+
+      onLogoutPress: function () {
+        var oDialog = new Dialog({
+          title: "Abmelden",
+          type: "Message",
+          content: new Text({
+            text: "Möchten Sie sich wirklich abmelden?",
+          }),
+          // bei der Bestätigung wird die Session gelöscht und der User zurück zur Login-Seite navigiert
+          beginButton: new Button({
+            text: "Ja",
+            type: "Reject",
+            press: function () {
+              // Session löschen
+              var sessionId = sessionStorage.getItem("currentSessionId");
+              if (sessionId) {
+                // Userdaten entfernen
+                sessionStorage.removeItem(sessionId);
+                // Session-ID selbst entfernen
+                sessionStorage.removeItem("currentSessionId");
+              }
+              sap.ui.getCore().setModel(null, "userModel");
+
+              this.getOwnerComponent().getRouter().navTo("login");
+
+              oDialog.close();
+              // damit können wir sichersstellen, dass keine Daten mehr von dem alten User vorhanden sind
+              window.location.reload();
+            }.bind(this),
+          }),
+          // bei der Ablehnung wird der Dialog geschlossen
+          endButton: new Button({
+            text: "Nein",
+            press: function () {
+              oDialog.close();
+            },
+          }),
+        });
+
+        oDialog.open();
       },
 
+      onGenericTileTimeTrackingPress: function () {
+        UIComponent.getRouterFor(this).navTo("TimeTracking");
+        MessageToast.show("Zeiterfassung öffnen...");
+      },
+      onHomePress: function () {
+        UIComponent.getRouterFor(this).navTo("Main");
+      },
+      
       onGenericTileEmployeeDataPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("AbsenceOverviewManager");
+        UIComponent.getRouterFor(this).navTo("AbsenceOverviewManager");
       },
 
       onGenericTileTrainingPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("Modules");
+        UIComponent.getRouterFor(this).navTo("Modules");
       },
 
       onGenericTileAbsencesPress: function () {
         MessageToast.show("Abwesenheitsanträge öffnen...");
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("absenceOverview");
+        UIComponent.getRouterFor(this).navTo("absenceOverview");
       },
 
       onGenericTilePayStatementsPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("PayStatements");
+        UIComponent.getRouterFor(this).navTo("PayStatements");
       },
 
-   
-
       onGenericTileProfilePress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("profile");
+        UIComponent.getRouterFor(this).navTo("profile");
       },
 
       onGenericTileEmployeeDirectoryPress: function () {
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("EmployeeDirectory");
+        UIComponent.getRouterFor(this).navTo("EmployeeDirectory");
       },
 
       onGenericTileTaxStatementsPress: function () {
         MessageToast.show("Lohnsteuerbescheinigungen anzeigen...");
-        var oRouter = UIComponent.getRouterFor(this);
-        oRouter.navTo("TaxStatements");
+        UIComponent.getRouterFor(this).navTo("TaxStatements");
       },
-
-      
 
       onGenericTileFamilyMembersPress: function () {
         MessageToast.show("Familienmitglieder anzeigen...");
-         var oRouter = UIComponent.getRouterFor(this);
-         oRouter.navTo("FamilyMembers");
+        UIComponent.getRouterFor(this).navTo("FamilyMembers");
       },
-
-      
+    
     });
   }
 );

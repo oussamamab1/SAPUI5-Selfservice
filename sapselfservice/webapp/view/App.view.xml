@@ -1,3 +1,4 @@
 <mvc:View xmlns:html="http://www.w3.org/1999/xhtml" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="sapselfservice.controller.App" displayBlock="true">
-<App id="app"> </App>
+<App id="app">
+ </App>
 </mvc:View>

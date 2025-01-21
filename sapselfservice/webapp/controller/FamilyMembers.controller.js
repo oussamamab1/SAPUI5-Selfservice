@@ -10,6 +10,34 @@ sap.ui.define(
 
     return Controller.extend("sapselfservice.controller.FamilyMembers", {
       onInit: function () {
+        var oUserModel = sap.ui.getCore().getModel("userModel");
+        if (!oUserModel) {
+          this._restoreSessionOrGoLogin();
+        } else {
+          this._continueInit();
+        }
+      },
+
+      _restoreSessionOrGoLogin: function () {
+        var sessionId = sessionStorage.getItem("currentSessionId");
+        if (sessionId) {
+          var userDataString = sessionStorage.getItem(sessionId);
+          if (userDataString) {
+            try {
+              var userData = JSON.parse(userDataString);
+              var oSessionModel = new JSONModel(userData);
+              sap.ui.getCore().setModel(oSessionModel, "userModel");
+              this._continueInit();
+              return;
+            } catch (e) {
+              console.error("Fehler beim Parsen der Session-Daten:", e);
+            }
+          }
+        }
+        sap.ui.core.UIComponent.getRouterFor(this).navTo("login");
+      },
+
+      _continueInit: function () {
         var oFamilyModel = new JSONModel({
           familyMembers: [],
           emergencyContact: {
@@ -220,7 +248,6 @@ sap.ui.define(
 
         var oContact = oModel.getProperty("/emergencyContact");
 
-        // Nur die relevanten Felder extrahieren
         var oCleanContact = {
           Name: oContact.Name,
           Telefonnummer: oContact.Telefonnummer,
@@ -229,7 +256,7 @@ sap.ui.define(
         firebase.db
           .collection("Notfallkontakte")
           .doc(sMitarbeiterID)
-          .set(oCleanContact) 
+          .set(oCleanContact)
           .then(() => {
             MessageToast.show("Notfallkontakt erfolgreich gespeichert.");
             oModel.setProperty("/isEditingEmergencyContact", false);
