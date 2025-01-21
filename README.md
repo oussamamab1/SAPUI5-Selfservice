@@ -13,9 +13,10 @@ Bevor Sie das Projekt lokal ausführen können, stellen Sie sicher, dass die fol
 
 ## Installation und Einrichtung
 
-### 1. Erstellen Sie einen Ordner, wo Sie das Repository lokal klonen möchten: z.B wahlprojekt_sapui5
+### 1. Erstellen Sie einen Ordner: 
+erstellen Sie einen neuen Ordner, wo Sie das Repository lokal klonen möchten z.B wahlprojekt_sapui5
 
-### 2. öffnen Sie den Terminal mit dem Pfad des Ordners
+### 2. öffnen Sie den Terminal mit dem Pfad des Ordners: 
 
 ### 3. Projekt-Repository klonen
 Führen Sie den folgenden Befehl aus, um das Repository zu klonen:
@@ -31,9 +32,9 @@ Windows/Linux: Strg + Shift + ö
 Mac: Cmd + Shift + ö
 ### 5. Abhängigkeiten installieren
 folgende Befehele im Terminal eingeben: 
- cd wahlprojekt_sapui5/sapselfservice
- npm install
- npm run start
+>  cd wahlprojekt_sapui5/sapselfservice
+>  npm install
+>  npm run start
 
 ### Support
 Falls Sie Unterstützung benötigen, wenden Sie sich bitte an:
