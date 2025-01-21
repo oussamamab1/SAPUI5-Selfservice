@@ -10,8 +10,37 @@ sap.ui.define(
 
     return Controller.extend("sapselfservice.controller.Profile", {
       onInit: function () {
+        // Session check
         var oUserModel = sap.ui.getCore().getModel("userModel");
+        if (!oUserModel) {
+          this._restoreSessionOrGoLogin();
+        } else {
+          this._continueInit();
+        }
+      },
 
+      _restoreSessionOrGoLogin: function () {
+        var sessionId = sessionStorage.getItem("currentSessionId");
+        if (sessionId) {
+          var userDataString = sessionStorage.getItem(sessionId);
+          if (userDataString) {
+            try {
+              var userData = JSON.parse(userDataString);
+              var oSessionModel = new JSONModel(userData);
+              sap.ui.getCore().setModel(oSessionModel, "userModel");
+              this._continueInit();
+              return;
+            } catch (e) {
+              console.error("Fehler beim Parsen der Session-Daten:", e);
+            }
+          }
+        }
+        sap.m.MessageToast.show("Bitte erst einloggen.");
+        this.getOwnerComponent().getRouter().navTo("Main");
+      },
+
+      _continueInit: function () {
+        var oUserModel = sap.ui.getCore().getModel("userModel");
         if (!oUserModel) {
           MessageToast.show("User model is not set!");
           return;
@@ -19,7 +48,6 @@ sap.ui.define(
         this.getView().setModel(oUserModel, "userModel");
         this._originalData = {};
 
-        // Dropdown-Daten für Geschlecht initialisieren
         var oGenderModel = new JSONModel({
           genders: [
             { key: "männlich", text: "Männlich" },
@@ -60,7 +88,7 @@ sap.ui.define(
         oView.byId("houseInput").setEnabled(false);
         oView.byId("placeInput").setEnabled(false);
         oView.byId("postcodeInput").setEnabled(false);
-        oView.byId("sexSelect").setEnabled(false); // Dropdown deaktivieren
+        oView.byId("sexSelect").setEnabled(false);
         oView.byId("editPersonalData").setVisible(true);
         oView.byId("cancelEditPersonalData").setVisible(false);
         oView.byId("savePersonalData").setEnabled(false);
@@ -74,7 +102,6 @@ sap.ui.define(
         var oModel = this.getView().getModel("userModel");
         var oData = oModel.getData();
 
-        // Prüfen, ob alle erforderlichen Felder gefüllt sind
         if (
           !oData.Vorname ||
           !oData.Nachname ||
@@ -91,7 +118,6 @@ sap.ui.define(
         var oView = this.getView();
         var sMitarbeiterID = oModel.getProperty("/Mitarbeiter-ID");
 
-        // Daten aktualisieren
         firebase.db
           .collection("DatenZurPerson")
           .where("Mitarbeiter-ID", "==", sMitarbeiterID)
@@ -109,7 +135,7 @@ sap.ui.define(
                 doc.ref.update({
                   Vorname: oData.Vorname,
                   Nachname: oData.Nachname,
-                  Geschlecht: oData.Geschlecht, // Aktualisiere Geschlecht
+                  Geschlecht: oData.Geschlecht,
                 })
               );
             });
@@ -123,7 +149,7 @@ sap.ui.define(
             oView.byId("houseInput").setEnabled(false);
             oView.byId("placeInput").setEnabled(false);
             oView.byId("postcodeInput").setEnabled(false);
-            oView.byId("sexSelect").setEnabled(false); // Dropdown deaktivieren
+            oView.byId("sexSelect").setEnabled(false);
             oView.byId("editPersonalData").setVisible(true);
             oView.byId("cancelEditPersonalData").setVisible(false);
             oView.byId("savePersonalData").setEnabled(false);
@@ -133,6 +159,7 @@ sap.ui.define(
             console.error("Error updating document: ", error);
           });
       },
+
       onEditBankData: function () {
         var oModel = sap.ui.getCore().getModel("userModel");
         this._originalData.bankData = {
@@ -170,7 +197,6 @@ sap.ui.define(
           bic: oModel.getProperty("/BIC"),
         };
 
-        // Einfache Validierung 
         var ibanRegex = /^[A-Za-z]{2}[0-9]{14,26}$/;
         var bicRegex = /^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$/;
 
@@ -178,7 +204,6 @@ sap.ui.define(
           MessageToast.show("Bitte geben Sie eine gültige IBAN ein.");
           return;
         }
-
         if (!bicRegex.test(oData.bic)) {
           MessageToast.show("Bitte geben Sie eine gültige BIC ein.");
           return;
@@ -210,7 +235,6 @@ sap.ui.define(
             return Promise.all(aPromises);
           })
           .then(function () {
-            // Erfolg (sofern  kein Dokument leer war)
             MessageToast.show("Bankdaten erfolgreich gespeichert.");
             var oView = that.getView();
             oView.byId("ibanInput").setEnabled(false);
