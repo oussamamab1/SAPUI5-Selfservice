@@ -31,16 +31,16 @@ Wählen Sie den zuvor geklonten Projektordner aus: z.B wahlprojekt_sapui5.
 Windows/Linux: Strg + Shift + ö
 Mac: Cmd + Shift + ö
 ### 5. Abhängigkeiten installieren
-folgende Befehele im Terminal eingeben: 
+folgende Befehle im Terminal eingeben: 
 
--  cd wahlprojekt_sapui5/sapselfservice
+- cd wahlprojekt_sapui5/sapselfservice
 - npm install
-- >npm run start
+- npm run start
 
 
 ### Support
-Falls Sie Unterstützung benötigen, wenden Sie sich bitte an:
+Falls Sie Unterstützung benötigen, wenden Sie sich bitte an mich:
+- Entwickler: Oussama Mabchour
+- E-Mail: oussama.mabchour@student.hs-rm.de
 
-Entwickler: Oussama Mabchour
-E-Mail: oussama.mabchour@student.hs-rm.de
 
