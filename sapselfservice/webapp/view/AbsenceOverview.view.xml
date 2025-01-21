@@ -1,7 +1,12 @@
 <mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:l="sap.ui.layout" controllerName="sapselfservice.controller.AbsenceOverview">
 <Page title="Meine Abwesenheitsanträge" showNavButton="true" navButtonPress="onNavBack">
 <content>
-
+                <Toolbar >
+                    <ToolbarSpacer />
+                        <ToolbarSpacer />
+                        <Button text="Antrag Hinzufügen" press="onNewAbsenceRequest" icon= "sap-icon://add-activity" type="Attention" />
+                    
+                </Toolbar>
 <Table id="idAbsenceTable" items="{AbwesenceModel>/entries}">
     <columns>
         <Column>
@@ -24,7 +29,6 @@
         </ColumnListItem>
     </items>
 </Table>
-<Button id="NewAbsenceRequestButton" text="Neuer Abwesenheitsantrag" press="onNewAbsenceRequest"/>
 </content>
 </Page>
 </mvc:View>

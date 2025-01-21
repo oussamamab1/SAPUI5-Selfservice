@@ -33,7 +33,7 @@
 
                         <VBox id="oneDayOrLess" visible="{= ${/selectedRadioButton} === 'oneDayOrLess' }">
                             <Label text="Datum:" />
-                            <DatePicker id="datepicker" change="onDateChange" placeholder="Bitte wählen Sie ein Datum" valueStateText="Ungültiges Datum"/>
+                            <DatePicker id="datepicker" change="onDateChange" valueStateText="Ungültiges Datum"/>
                             <Label text="Beginn:" />
                             <TimePicker id="beginnTimePicker" change="onTimeChange" />
                             <Label text="Ende:" />
@@ -65,8 +65,8 @@
         <footer>
             <Toolbar>
                 <ToolbarSpacer />
-                <Button id= "Savebutton" text="Sichern" type="Emphasized" press="onSaveRequest" />
-                <Button text="Abbrechen" press="onCancelRequest"/>
+                <Button id= "Savebutton" text="Sichern" type="Accept" press="onSaveRequest" />
+                <Button text="Abbrechen" type="Reject" press="onCancelRequest"/>
             </Toolbar>
         </footer>
     </Page>

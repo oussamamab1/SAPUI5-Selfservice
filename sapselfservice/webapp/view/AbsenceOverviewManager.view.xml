@@ -61,10 +61,12 @@
                             <HBox>
                                 <Button
                                     text="Genehmigen"
+                                    type="Accept"
                                     icon="sap-icon://accept"
                                     press=".onApproveAbsence" />
                                 <Button
                                     text="Ablehnen"
+                                    type="Reject"
                                     icon="sap-icon://decline"
                                     class="sapUiSmallMarginBegin"
                                     press=".onRejectAbsence" />
