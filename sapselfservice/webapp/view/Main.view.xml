@@ -65,7 +65,7 @@
                         </f:GridListItem>
 
                         <!-- Meine Abwesenheitsanträge -->
-                        <f:GridListItem  type="Active" press="onGenericTileAbsencesPress" class="item tilePANTONE638">
+                        <f:GridListItem  type="Active" press="onGenericTileAbsencesPress" class="item tilePANTONE638" id="id.AbsencesGenericTile">
                             <VBox height="5rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
                                 <core:Icon src="sap-icon://general-leave-request" size="2.5rem" class="sapUiTinyMarginBottom" />
                                 <Title text="Meine Abwesenheitsanträge" wrapping="false" textAlign="Center" class="tileText" />
@@ -73,7 +73,7 @@
                         </f:GridListItem>
 
                         <!-- Meine Zeiterfassung -->
-                        <f:GridListItem type="Active" press="onGenericTileTimeTrackingPress" class="item tilePANTONE382">
+                        <f:GridListItem type="Active" press="onGenericTileTimeTrackingPress" class="item tilePANTONE382" id="id.TimeTrackingGenericTile">
                             <VBox height="5rem" justifyContent="Center" alignItems="Center" class="sapUiSmallMargin">
                                 <core:Icon src="sap-icon://date-time" size="2.5rem" class="sapUiTinyMarginBottom" />
                                 <Title text="Meine Zeiterfassung" wrapping="false" textAlign="Center" class="tileText" />

@@ -279,45 +279,56 @@ sap.ui.define(
 
         /**
          * Ermittelt anhand der an "aLeaderIDs" übergebenen Abteilungsleiter,
-         * wer "abwesend" ist. Hier z. B. Status = "In Bearbeitung" oder "Genehmigt".
+         * wer "abwesend" ist. Hier z. B. Status = "Genehmigt".
          */
         _whoIsAbsent: function (aLeaderIDs) {
           return new Promise((resolve, reject) => {
             if (!aLeaderIDs || aLeaderIDs.length === 0) {
               return resolve([]);
             }
+
+            const currentDate = new Date(); // Aktuelles Datum als Date-Objekt
             let aPromises = [];
 
-            // Abwesenheiten
-            let p1 = firebase.db
-              .collection("Abwesenheiten")
-              .where("Mitarbeiter-ID", "in", aLeaderIDs)
-              .where("Status", "in", ["In Bearbeitung", "Genehmigt"])
-              .get();
-
-            // Urlaubsplan
+            // Abfrage ohne Bereichsfilter, Bereich später manuell prüfen
             let p2 = firebase.db
               .collection("Urlaubsplan")
               .where("Mitarbeiter-ID", "in", aLeaderIDs)
-              .where("Status", "in", ["In Bearbeitung", "Genehmigt"])
+              .where("Status", "==", "Genehmigt")
               .get();
 
-            aPromises.push(p1, p2);
+            aPromises.push(p2);
 
             Promise.all(aPromises)
               .then((results) => {
                 let aAbsentLeaders = [];
                 results.forEach((snap) => {
                   snap.forEach((doc) => {
-                    const mid = doc.data()["Mitarbeiter-ID"];
-                    if (!aAbsentLeaders.includes(mid)) {
-                      aAbsentLeaders.push(mid);
+                    const data = doc.data();
+
+                    // Konvertiere Startdatum und Enddatum aus Firestore in JavaScript Date-Objekte
+                    const startDate = data.Startdatum?.toDate
+                      ? data.Startdatum.toDate() // Falls es ein Firestore-Timestamp ist
+                      : new Date(data.Startdatum); // Falls es ein ISO-String oder Date ist
+                    const endDate = data.Enddatum?.toDate
+                      ? data.Enddatum.toDate()
+                      : new Date(data.Enddatum);
+
+                    // Vergleiche mit aktuellem Datum
+                    if (startDate <= currentDate && endDate >= currentDate) {
+                      const mid = data["Mitarbeiter-ID"];
+                      if (!aAbsentLeaders.includes(mid)) {
+                        aAbsentLeaders.push(mid);
+                      }
                     }
                   });
                 });
                 resolve(aAbsentLeaders);
               })
-              .catch(reject);
+              .catch((error) => {
+                console.error("Fehler in _whoIsAbsent:", error);
+                reject(error);
+              });
           });
         },
 
@@ -528,31 +539,34 @@ sap.ui.define(
           return oFormatter.format(oDate);
         },
         // Details-Button-Funktion
-       onShowDetails: function (oEvent) {
-    var oContext = oEvent.getSource().getBindingContext("absencesModel");
-    var oSelectedAbsence = oContext.getObject();
+        onShowDetails: function (oEvent) {
+          var oContext = oEvent.getSource().getBindingContext("absencesModel");
+          var oSelectedAbsence = oContext.getObject();
 
-    var oModel = this.getView().getModel("absencesModel");
-    oModel.setProperty("/SelectedAbsence", oSelectedAbsence);
+          var oModel = this.getView().getModel("absencesModel");
+          oModel.setProperty("/SelectedAbsence", oSelectedAbsence);
 
-    // Fragment laden und anzeigen
-    if (!this._oDetailsDialog) {
-        Fragment.load({
-            id: this.getView().getId(),
-            name: "sapselfservice.view.AbsenceDetailsDialog", 
-            controller: this
-        }).then(function (oDialog) {
-            this._oDetailsDialog = oDialog;
-            this.getView().addDependent(this._oDetailsDialog);
+          // Fragment laden und anzeigen
+          if (!this._oDetailsDialog) {
+            Fragment.load({
+              id: this.getView().getId(),
+              name: "sapselfservice.view.AbsenceDetailsDialog",
+              controller: this,
+            })
+              .then(
+                function (oDialog) {
+                  this._oDetailsDialog = oDialog;
+                  this.getView().addDependent(this._oDetailsDialog);
+                  this._oDetailsDialog.open();
+                }.bind(this)
+              )
+              .catch(function (error) {
+                console.error("Fehler beim Laden des Fragments:", error);
+              });
+          } else {
             this._oDetailsDialog.open();
-        }.bind(this)).catch(function (error) {
-            console.error("Fehler beim Laden des Fragments:", error);
-        });
-    } else {
-        this._oDetailsDialog.open();
-    }
-},
-
+          }
+        },
 
         onCloseDetailsDialog: function () {
           if (this._oDetailsDialog) {
