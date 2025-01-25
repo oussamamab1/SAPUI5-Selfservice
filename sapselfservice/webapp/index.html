@@ -11,25 +11,22 @@
         }
     </style>
 
-    <!-- NUR compat-Versionen laden -->
     <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore-compat.js"></script>
-
-
-    <!-- SAPUI5 -->
     <script
-        id="sap-ui-bootstrap"
-        src="resources/sap-ui-core.js"
-        data-sap-ui-theme="sap_horizon"
-        data-sap-ui-libs="sap.m, sap.tnt, sap.ui.core,sap.ui.layout, sap.ui.table, sap.ui.unified"
-        data-sap-ui-resourceroots='{
-            "sapselfservice": "./"
-        }'
-        data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"
-        data-sap-ui-compatVersion="edge"
-        data-sap-ui-async="true"
-        data-sap-ui-frameOptions="trusted"
-    ></script>
+    id="sap-ui-bootstrap"
+    src="https://ui5.sap.com/resources/sap-ui-core.js"
+    data-sap-ui-theme="sap_horizon"
+    data-sap-ui-libs="sap.m, sap.tnt, sap.ui.core, sap.ui.layout, sap.ui.table, sap.ui.unified"
+    data-sap-ui-resourceroots='{
+        "sapselfservice": "./"
+    }'
+    data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"
+    data-sap-ui-compatVersion="edge"
+    data-sap-ui-async="true"
+    data-sap-ui-frameOptions="trusted"
+></script>
+
 </head>
 <body class="sapUiBody sapUiSizeCompact" id="content">
     <div
