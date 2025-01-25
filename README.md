@@ -1,7 +1,11 @@
 # Personaldatenmanagement-System
 
 Dieses Projekt ist eine interaktive Webanwendung zur Verwaltung von Personaldaten, die mit **SAP UI5** und **Firebase** entwickelt wurde. Die Anwendung ermöglicht unter anderem die Authentifizierung, Verwaltung von Abwesenheiten, Bearbeitung persönlicher Daten sowie die Anzeige von Steuer- und Lohnabrechnungen.
+### über Webbrowser, das Projektausführen 
+https://sap-sapselfservices-projects.vercel.app/
 
+login Daten für Git hub, kontaktieren Sie Oussama Mabchour( Mail finden ganz unten)
+### lokal das Projekt ausführen 
 ## Voraussetzungen
 
 Bevor Sie das Projekt lokal ausführen können, stellen Sie sicher, dass die folgenden Tools und Technologien installiert sind:
@@ -36,6 +40,7 @@ folgende Befehle im Terminal eingeben:
 - cd wahlprojekt_sapui5/sapselfservice
 - npm install
 - npm run start
+
 
 
 ### Support
