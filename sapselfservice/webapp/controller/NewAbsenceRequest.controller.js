@@ -408,6 +408,7 @@ sap.ui.define(
 
         const mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
         const oSelectedType = oView.byId("absenceTypeSelect").getSelectedItem();
+
         if (!oSelectedType) {
           MessageToast.show("Bitte Abwesenheitstyp auswählen!");
           return;
@@ -434,136 +435,148 @@ sap.ui.define(
           .getProperty("/selectedRadioButton");
 
         const antragDatum = new Date();
+        let tarif = 1;
 
-        if (absenceTypeText === "Urlaub") {
+        firebase.db
+          .collection("StelleRolle")
+          .where("Mitarbeiter-ID", "==", mitarbeiterId)
+          .get()
+          .then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+              querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.Faktor === 0.5 || data.Faktor === 1) {
+                  tarif = data.Faktor;
+                }
+              });
+            }
 
-          if (
-            selectedRadioButton === "moreThanOneDay" &&
-            Number(sDurationDays) > urlaubkontingent
-          ) {
-            MessageToast.show(
-              `Ihr Urlaubskontingent reicht nicht aus. Verfügbare Tage: ${urlaubkontingent}`
-            );
-            return;
-          }
+            if (absenceTypeText === "Urlaub") {
+              if (
+                selectedRadioButton === "moreThanOneDay" &&
+                Number(sDurationDays) > urlaubkontingent
+              ) {
+                MessageToast.show(
+                  `Ihr Urlaubskontingent reicht nicht aus. Verfügbare Tage: ${urlaubkontingent}`
+                );
+                return;
+              }
 
-          if (
-            selectedRadioButton === "oneDayOrLess" &&
-            (!oOneDayDate || !sStartTime || !sEndTime)
-          ) {
-            MessageToast.show("Bitte ein korrektes Datum und Zeiten eingeben.");
-            return;
-          }
+              if (
+                selectedRadioButton === "oneDayOrLess" &&
+                (!oOneDayDate || !sStartTime || !sEndTime)
+              ) {
+                MessageToast.show(
+                  "Bitte ein korrektes Datum und Zeiten eingeben."
+                );
+                return;
+              }
 
-          const antragTimestamp = firebase.Timestamp.fromDate(antragDatum);
-          let docID = "";
+              const antragTimestamp = firebase.Timestamp.fromDate(antragDatum);
+              const requestDataUrlaub = {
+                "Mitarbeiter-ID": mitarbeiterId,
+                "Abwesenheit-ID": absenceTypeKey,
+                Antragsdatum: antragTimestamp,
+                Status: "In Bearbeitung",
+                Kommentare: sNote,
+              };
 
-          docID = "Urlaub_" + mitarbeiterId + "_" + Date.now();
+              if (selectedRadioButton === "moreThanOneDay") {
+                requestDataUrlaub.Startdatum =
+                  firebase.Timestamp.fromDate(oStartDate);
+                requestDataUrlaub.Enddatum =
+                  firebase.Timestamp.fromDate(oEndDate);
+                requestDataUrlaub.UrlaubKontingent = urlaubkontingent;
+                requestDataUrlaub.geplanterUrlaubstage =
+                  Number(sDurationDays) * tarif;
+              } else {
+                requestDataUrlaub.Datum =
+                  firebase.Timestamp.fromDate(oOneDayDate);
+                requestDataUrlaub.Startzeit = sStartTime;
+                requestDataUrlaub.Endzeit = sEndTime;
+                requestDataUrlaub.geplanterUrlaubstage =
+                  tarif === 0.5 ? 0.5 : sHours > 4 ? 1 : 0.5;
+                requestDataUrlaub.UrlaubKontingent = urlaubkontingent;
+              }
 
+              firebase.db
+                .collection("Urlaubsplan")
+                .add(requestDataUrlaub)
+                .then(() => {
+                  MessageToast.show("Urlaub erfolgreich beantragt.");
+                  this.clearInputFields([
+                    "datepicker",
+                    "beginnTimePicker",
+                    "endTimePicker",
+                    "durationInput",
+                    "Zeitraum",
+                    "durationTagInput",
+                    "noteTextArea",
+                  ]);
+                  sap.ui.core.UIComponent.getRouterFor(this).navTo(
+                    "absenceOverview"
+                  );
+                })
+                .catch((error) => {
+                  console.error("Fehler beim Speichern im Urlaubsplan:", error);
+                  MessageToast.show("Fehler beim Speichern des Urlaubs.");
+                });
+            } else {
+              if (!oOneDayDate || !sStartTime || !sEndTime) {
+                MessageToast.show(
+                  "Bitte Datum und Uhrzeiten für Teleworking eingeben."
+                );
+                return;
+              }
 
-          const requestDataUrlaub = {
-            "Mitarbeiter-ID": mitarbeiterId,
-            "Abwesenheit-ID": absenceTypeKey, 
-            Antragsdatum: antragTimestamp,
-            Status: "In Bearbeitung",
-            Kommentare: sNote,
-          };
+              const antragTimestamp = firebase.Timestamp.fromDate(antragDatum);
+              const oneDayTimestamp = firebase.Timestamp.fromDate(oOneDayDate);
 
-          if (selectedRadioButton === "moreThanOneDay") {
+              const requestDataTele = {
+                "Abwesenheit-ID": absenceTypeKey,
+                Antragsdatum: antragTimestamp,
+                Arbeitstunden: sHours ? sHours.toString() : "0",
+                Datum: oneDayTimestamp,
+                Endzeit: sEndTime,
+                Kommentare: sNote,
+                "Mitarbeiter-ID": mitarbeiterId,
+                Startzeit: sStartTime,
+                Status: "In Bearbeitung",
+              };
 
-            requestDataUrlaub.Startdatum =
-              firebase.Timestamp.fromDate(oStartDate);
-            requestDataUrlaub.Enddatum = firebase.Timestamp.fromDate(oEndDate);
-            requestDataUrlaub.UrlaubKontingent = urlaubkontingent;
-            requestDataUrlaub.geplanterUrlaubstage = Number(sDurationDays);
-          } else {
-
-            requestDataUrlaub.Datum = firebase.Timestamp.fromDate(oOneDayDate);
-            requestDataUrlaub.Startzeit = sStartTime; 
-            requestDataUrlaub.Endzeit = sEndTime;
-            const neededDays = parseFloat(sHours) > 4 ? 1 : 0.5;
-            requestDataUrlaub.geplanterUrlaubstage = neededDays;
-            requestDataUrlaub.UrlaubKontingent = urlaubkontingent;
-          }
-
-          firebase.db
-            .collection("Urlaubsplan")
-            .doc(docID)
-            .set(requestDataUrlaub)
-            .then(() => {
-              MessageToast.show("Urlaub erfolgreich beantragt.");
-              this.clearInputFields([
-                "datepicker",
-                "beginnTimePicker",
-                "endTimePicker",
-                "durationInput",
-                "Zeitraum",
-                "durationTagInput",
-                "noteTextArea",
-              ]);
-              sap.ui.core.UIComponent.getRouterFor(this).navTo(
-                "absenceOverview"
-              );
-            })
-            .catch((error) => {
-              console.error("Fehler beim Speichern im Urlaubsplan:", error);
-              MessageToast.show("Fehler beim Speichern des Urlaubs.");
-            });
-        } else {
-
-          if (!oOneDayDate || !sStartTime || !sEndTime) {
-            MessageToast.show(
-              "Bitte Datum und Uhrzeiten für Teleworking eingeben."
-            );
-            return;
-          }
-
-          const antragTimestamp = firebase.Timestamp.fromDate(antragDatum);
-          const oneDayTimestamp = firebase.Timestamp.fromDate(oOneDayDate);
-
-          const sArbeitstunden = sHours ? sHours.toString() : "0";
-
-          const docID = "Tele_" + mitarbeiterId + "_" + Date.now();
-
-          const requestDataTele = {
-            "Abwesenheit-ID": absenceTypeKey, 
-            Antragsdatum: antragTimestamp, 
-            Arbeitstunden: sArbeitstunden,
-            Datum: oneDayTimestamp,
-            Endzeit: sEndTime, 
-            Kommentare: sNote, 
-            "Mitarbeiter-ID": mitarbeiterId, 
-            Startzeit: sStartTime, 
-            Status: "In Bearbeitung", 
-          };
-
-          firebase.db
-            .collection("Abwesenheiten")
-            .doc(docID)
-            .set(requestDataTele)
-            .then(() => {
-              MessageToast.show(absenceTypeText + " erfolgreich beantragt.");
-              this.clearInputFields([
-                "datepicker",
-                "beginnTimePicker",
-                "endTimePicker",
-                "durationInput",
-                "Zeitraum",
-                "durationTagInput",
-                "noteTextArea",
-              ]);
-              sap.ui.core.UIComponent.getRouterFor(this).navTo(
-                "absenceOverview"
-              );
-            })
-            .catch((error) => {
-              console.error(
-                "Fehler beim Speichern des Abwesenheiten-Dokuments:",
-                error
-              );
-              MessageToast.show("Fehler beim Speichern der Abwesenheit.");
-            });
-        }
+              firebase.db
+                .collection("Abwesenheiten")
+                .add(requestDataTele)
+                .then(() => {
+                  MessageToast.show(
+                    `${absenceTypeText} erfolgreich beantragt.`
+                  );
+                  this.clearInputFields([
+                    "datepicker",
+                    "beginnTimePicker",
+                    "endTimePicker",
+                    "durationInput",
+                    "Zeitraum",
+                    "durationTagInput",
+                    "noteTextArea",
+                  ]);
+                  sap.ui.core.UIComponent.getRouterFor(this).navTo(
+                    "absenceOverview"
+                  );
+                })
+                .catch((error) => {
+                  console.error(
+                    "Fehler beim Speichern der Abwesenheit:",
+                    error
+                  );
+                  MessageToast.show("Fehler beim Speichern der Abwesenheit.");
+                });
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching Tarif:", error);
+            MessageToast.show("Fehler beim Abrufen der Tarifdaten.");
+          });
       },
 
       onCancelRequest: function () {
