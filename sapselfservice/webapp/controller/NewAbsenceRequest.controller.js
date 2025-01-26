@@ -10,7 +10,6 @@ sap.ui.define(
 
     return Controller.extend("sapselfservice.controller.NewAbsenceRequest", {
       onInit: function () {
-        // Session check
         var oUserModel = sap.ui.getCore().getModel("userModel");
         if (!oUserModel) {
           this._restoreSessionOrGoLogin();
@@ -40,8 +39,8 @@ sap.ui.define(
       },
 
       _continueInit: function () {
-        this.byId("urlaubkontingent").setText("Laden..."); //Debug
-        this._loadAbwesenheitsart(); 
+        this.byId("urlaubkontingent").setText("Laden...");
+        this._loadAbwesenheitsart();
         this._loadUrlaubkontingent();
         this._loadGenehmigender();
       },
@@ -64,24 +63,23 @@ sap.ui.define(
       },
 
       _loadUrlaubkontingent: function () {
-        console.log("Loading Urlaubkontingent...");
         var oUserModel = sap.ui.getCore().getModel("userModel");
         if (!oUserModel) {
           sap.m.MessageToast.show("Das Benutzer-Modell ist nicht gesetzt!");
           this.getOwnerComponent().getRouter().navTo("login");
           return;
         }
-      
+
         var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
         var urlaubkontingentField = this.byId("urlaubkontingent");
-        let defaultKontingent = 20; 
-      
+        let defaultKontingent = 20;
+
         firebase.db
           .collection("StelleRolle")
           .where("Mitarbeiter-ID", "==", mitarbeiterId)
           .get()
           .then((querySnapshot) => {
-            let faktor = 1; 
+            let faktor = 1;
             if (!querySnapshot.empty) {
               querySnapshot.forEach((doc) => {
                 const data = doc.data();
@@ -91,14 +89,11 @@ sap.ui.define(
                   console.log("Unexpected Faktor value:", data.Faktor);
                 }
               });
-            } else {
-              console.log("No documents found for Mitarbeiter-ID:", mitarbeiterId);
             }
-      
-            // Set Urlaubkontingent based on Faktor
+
             defaultKontingent = faktor === 0.5 ? 10 : 20;
             urlaubkontingentField.setText(defaultKontingent);
-      
+
             return firebase.db
               .collection("Urlaubsplan")
               .where("Mitarbeiter-ID", "==", mitarbeiterId)
@@ -107,105 +102,98 @@ sap.ui.define(
           })
           .then((querySnapshot) => {
             if (querySnapshot.empty) {
-                console.log("No approved Urlaubsplan found. Using default kontingent.");
-                return;
+              return;
             }
-        
-            const seineurlaubsplan = querySnapshot.docs.map((doc) => doc.data());
+
+            const seineurlaubsplan = querySnapshot.docs.map((doc) =>
+              doc.data()
+            );
             let totalPlannedDays = 0;
-        
+
             seineurlaubsplan.forEach((plan) => {
-                const geplanteTage = parseFloat(plan.geplanterUrlaubstage || 0);
-                if (!isNaN(geplanteTage)) {
-                    totalPlannedDays += geplanteTage;
-                } else {
-                    console.warn("Invalid geplanteTage in plan:", plan);
-                }
+              const geplanteTage = parseFloat(plan.geplanterUrlaubstage || 0);
+              if (!isNaN(geplanteTage)) {
+                totalPlannedDays += geplanteTage;
+              }
             });
-        
+
             const urlaubkontingent = parseFloat(defaultKontingent);
             const verbleibenderUrlaub = urlaubkontingent - totalPlannedDays;
-        
-            console.log(`Total planned days: ${totalPlannedDays}`);
+
             urlaubkontingentField.setText(
-                !isNaN(verbleibenderUrlaub) ? verbleibenderUrlaub.toString() : urlaubkontingent
+              !isNaN(verbleibenderUrlaub)
+                ? verbleibenderUrlaub.toString()
+                : urlaubkontingent
             );
-        })        
+          })
           .catch((error) => {
             console.error("Error fetching UrlaubKontingent:", error);
-            urlaubkontingentField.setText(20); // Default fallback on error
+            urlaubkontingentField.setText(20);
           });
       },
 
       _loadGenehmigender: function () {
         var oUserModel = sap.ui.getCore().getModel("userModel");
         if (!oUserModel) {
-            sap.m.MessageToast.show("Das Benutzer-Modell ist nicht gesetzt!");
-            this.getOwnerComponent().getRouter().navTo("login");
-            return;
+          sap.m.MessageToast.show("Das Benutzer-Modell ist nicht gesetzt!");
+          this.getOwnerComponent().getRouter().navTo("login");
+          return;
         }
-    
+
         var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
-        var stellenId = oUserModel.getProperty("/Stellen-ID");
         var abteilungId = oUserModel.getProperty("/Abteilung-ID");
-    
-        if (!abteilungId || !mitarbeiterId || !stellenId) {
-            console.error("Required user data is missing!");
-            return;
+
+        if (!abteilungId || !mitarbeiterId) {
+          return;
         }
-    
+
         const approverInput = this.byId("approverInput");
         if (!approverInput) {
-            console.error("approverInput element not found!");
-            return;
+          return;
         }
-    
+
         firebase.db
-            .collection("Abteilung")
-            .where("Abteilung-ID", "==", abteilungId)
-            .get()
-            .then((querySnapshot) => {
-                if (querySnapshot.empty) {
-                    console.log("No Abteilung found for Abteilung-ID. Setting approver to CEO.");
-                    approverInput.setValue("CEO");
-                    return Promise.reject("No Abteilung found.");
-                }
-    
-                const abteilungsleiterId = querySnapshot.docs[0].data()["Abteilungsleiter-ID"];
-    
-                // If there's no Abteilungsleiter(CEO) or the current user is the Abteilungsleiter
-                if (!abteilungsleiterId || abteilungsleiterId === mitarbeiterId) {
-                    console.log("CEO or Mitarbeiter is the Abteilungsleiter. Setting approver to CEO.");
-                    approverInput.setValue("CEO");
-                    return Promise.reject("No specific approver needed.");
-                }
-    
-                return firebase.db
-                    .collection("DatenZurPerson")
-                    .where("Mitarbeiter-ID", "==", abteilungsleiterId)
-                    .get();
-            })
-            .then((querySnapshot) => {
-                if (querySnapshot.empty) {
-                    console.error("No DatenZurPerson found for Abteilungsleiter-ID. Setting approver to CEO.");
-                    approverInput.setValue("CEO");
-                    return;
-                }
-    
-                const mitarbeiterData = querySnapshot.docs[0].data();
-                const name = mitarbeiterData.Vorname + " " + mitarbeiterData.Nachname;
-                console.log("Approver found:", name);
-    
-                approverInput.setValue(name);
-            })
-            .catch((error) => {
-                if (error !== "No specific approver needed.") {
-                    console.error("Error fetching approver details:", error);
-                }
-            });
-        },
-         
-      
+          .collection("Abteilung")
+          .where("Abteilung-ID", "==", abteilungId)
+          .get()
+          .then((querySnapshot) => {
+            if (querySnapshot.empty) {
+              approverInput.setValue("CEO");
+              return Promise.reject("No Abteilung found.");
+            }
+
+            const abteilungsleiterId =
+              querySnapshot.docs[0].data()["Abteilungsleiter-ID"];
+
+            if (!abteilungsleiterId || abteilungsleiterId === mitarbeiterId) {
+              approverInput.setValue("CEO");
+              return Promise.reject("No specific approver needed.");
+            }
+
+            return firebase.db
+              .collection("DatenZurPerson")
+              .where("Mitarbeiter-ID", "==", abteilungsleiterId)
+              .get();
+          })
+          .then((querySnapshot) => {
+            if (querySnapshot.empty) {
+              approverInput.setValue("CEO");
+              return;
+            }
+
+            const mitarbeiterData = querySnapshot.docs[0].data();
+            const name =
+              mitarbeiterData.Vorname + " " + mitarbeiterData.Nachname;
+
+            approverInput.setValue(name);
+          })
+          .catch((error) => {
+            if (error !== "No specific approver needed.") {
+              console.error("Error fetching approver details:", error);
+            }
+          });
+      },
+
       clearInputFields: function (controlIds) {
         const oView = this.getView();
         controlIds.forEach((controlId) => {
@@ -244,65 +232,70 @@ sap.ui.define(
         const sSourceId = oSource.getId();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-    
+
         if (sSourceId.includes("Zeitraum")) {
-            const oStartDate = oSource.getDateValue();
-            const oEndDate = oSource.getSecondDateValue();
-            if (oStartDate && oEndDate) {
-                if (oStartDate < today || oEndDate < today) {
-                    oSource.setValueState("Error");
-                    this.byId("Savebutton").setEnabled(false);
-                    oSource.setValueStateText("Datum muss ab morgen gewählt werden.");
-                    this.byId("durationTagInput").setValue("");
-                } else {
-                    oSource.setValueState("None");
-                    this.byId("Savebutton").setEnabled(true);
-                    const iDuration = this.calculateWeekdays(oStartDate, oEndDate);
-                    this.byId("durationTagInput").setValue(iDuration);
-                }
+          const oStartDate = oSource.getDateValue();
+          const oEndDate = oSource.getSecondDateValue();
+          if (oStartDate && oEndDate) {
+            if (oStartDate < today || oEndDate < today) {
+              oSource.setValueState("Error");
+              this.byId("Savebutton").setEnabled(false);
+              oSource.setValueStateText("Datum muss ab morgen gewählt werden.");
+              this.byId("durationTagInput").setValue("");
             } else {
-                this.byId("durationTagInput").setValue("");
+              oSource.setValueState("None");
+              this.byId("Savebutton").setEnabled(true);
+              const iDuration = this.calculateWeekdays(oStartDate, oEndDate);
+              this.byId("durationTagInput").setValue(iDuration);
             }
+          } else {
+            this.byId("durationTagInput").setValue("");
+          }
         } else if (sSourceId.includes("datepicker")) {
-            const selectedDate = oSource.getDateValue();
-            const absenceType = this.getView().byId("absenceTypeSelect").getSelectedItem()?.getText();
-    
-            if (selectedDate) {
-                const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 6 = Saturday
-                let isValid = true;
-                let errorMessage = "";
-    
-                if (absenceType === "Teleworking Wochenende") {
-                    isValid = dayOfWeek === 0 || dayOfWeek === 6;
-                    if (!isValid) {
-                        errorMessage = "Für Teleworking Wochenende bitte Samstag oder Sonntag wählen.";
-                    }
-                } else if (absenceType === "Teleworking") {
-                    isValid = dayOfWeek >= 1 && dayOfWeek <= 5;
-                    if (!isValid) {
-                        errorMessage = "Für Teleworking bitte Montag bis Freitag wählen.";
-                    }
-                } else if (absenceType === "Urlaub") {
-                    if (selectedDate <= today) {
-                        isValid = false;
-                        errorMessage = "Datum muss ab morgen gewählt werden.";
-                    } else if (dayOfWeek === 0 || dayOfWeek === 6) {
-                        isValid = false;
-                        errorMessage = "Für Urlaub bitte Montag bis Freitag wählen.";
-                    }
-                }
-    
-                if (isValid) {
-                    oSource.setValueState("None");
-                    this.byId("Savebutton").setEnabled(true);
-                } else {
-                    oSource.setValueState("Error");
-                    oSource.setValueStateText(errorMessage);
-                    this.byId("Savebutton").setEnabled(false);
-                }
+          const selectedDate = oSource.getDateValue();
+          const absenceType = this.getView()
+            .byId("absenceTypeSelect")
+            .getSelectedItem()
+            ?.getText();
+
+          if (selectedDate) {
+            const dayOfWeek = selectedDate.getDay();
+            let isValid = true;
+            let errorMessage = "";
+
+            if (absenceType === "Teleworking Wochenende") {
+              isValid = dayOfWeek === 6 || dayOfWeek === 0;
+              if (!isValid) {
+                errorMessage =
+                  "Für Teleworking Wochenende bitte Samstag oder Sonntag wählen.";
+              }
+            } else if (absenceType === "Teleworking") {
+              isValid = dayOfWeek >= 1 && dayOfWeek <= 5;
+              if (!isValid) {
+                errorMessage =
+                  "Für Teleworking bitte Montag bis Freitag wählen.";
+              }
+            } else if (absenceType === "Urlaub") {
+              if (selectedDate <= today) {
+                isValid = false;
+                errorMessage = "Datum muss ab morgen gewählt werden.";
+              } else if (dayOfWeek === 0 || dayOfWeek === 6) {
+                isValid = false;
+                errorMessage = "Für Urlaub bitte Montag bis Freitag wählen.";
+              }
             }
+
+            if (isValid) {
+              oSource.setValueState("None");
+              this.byId("Savebutton").setEnabled(true);
+            } else {
+              oSource.setValueState("Error");
+              oSource.setValueStateText(errorMessage);
+              this.byId("Savebutton").setEnabled(false);
+            }
+          }
         }
-    },
+      },
 
       calculateWeekdays: function (startDate, endDate) {
         let weekdaysCount = 0;
@@ -355,13 +348,12 @@ sap.ui.define(
             MessageToast.show(
               error.message || "Fehler bei der Berechnung der Dauer."
             );
-            console.error(error.message);
           }
         } else {
           MessageToast.show("Bitte sowohl Beginn- als auch Endzeit eingeben.");
         }
       },
-     
+
       onAbsenceTypeChange: function () {
         var oView = this.getView();
         var oSelectedType = oView.byId("absenceTypeSelect").getSelectedItem();
@@ -375,39 +367,38 @@ sap.ui.define(
           "durationInput",
           "durationTagInput",
           "Zeitraum",
-          "noteTextArea"
+          "noteTextArea",
         ];
-      
-        // Clear the input fields 
+
         this.clearInputFields(inputFields);
 
         var oDatePicker = oView.byId("datepicker");
         if (oDatePicker) {
-            oDatePicker.setValueState("None"); 
-            oDatePicker.setValueStateText(""); 
+          oDatePicker.setValueState("None");
+          oDatePicker.setValueStateText("");
         }
 
         var oSaveButton = oView.byId("Savebutton");
         if (oSaveButton) {
-            oSaveButton.setEnabled(true); 
+          oSaveButton.setEnabled(true);
         }
-    
+
         if (oSelectedType && oSelectedType.getText() !== "Urlaub") {
-            // Disable the "Mehr als ein Tag" option
-            aRadioButtons[0].setEnabled(false); 
-            oRadioButtonGroup.setSelectedIndex(1); 
-            oView.getModel().setProperty("/selectedRadioButton", "oneDayOrLess");
+          aRadioButtons[0].setEnabled(false);
+          oRadioButtonGroup.setSelectedIndex(1);
+          oView.getModel().setProperty("/selectedRadioButton", "oneDayOrLess");
         } else {
-            // Enable both options for "Urlaub"
-            aRadioButtons[0].setEnabled(true); 
-            oRadioButtonGroup.setSelectedIndex(0);
-            oView.getModel().setProperty("/selectedRadioButton", "moreThanOneDay");
+          aRadioButtons[0].setEnabled(true);
+          oRadioButtonGroup.setSelectedIndex(0);
+          oView
+            .getModel()
+            .setProperty("/selectedRadioButton", "moreThanOneDay");
         }
       },
-    
+
       onSaveRequest: function () {
-        var oView = this.getView();
-        var oUserModel = sap.ui.getCore().getModel("userModel");
+        const oView = this.getView();
+        const oUserModel = sap.ui.getCore().getModel("userModel");
 
         if (!oUserModel) {
           sap.m.MessageToast.show("Das Benutzer-Modell ist nicht gesetzt!");
@@ -415,182 +406,164 @@ sap.ui.define(
           return;
         }
 
-        var mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
-
-        // Tarif
-        var tarif = 1;
-        firebase.db
-          .collection("StelleRolle")
-          .where("Mitarbeiter-ID", "==", mitarbeiterId) 
-          .get()
-          .then((querySnapshot) => {
-            if (!querySnapshot.empty) {
-              querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const faktor = data.Faktor; 
-                if (faktor === 0.5 || faktor === 1) {
-                  tarif = faktor;
-                  console.log("Tarif is set to:", tarif);
-                  return tarif;
-                } else {
-                  console.log("Unexpected Faktor value:", faktor);
-                }
-              });
-            } else {
-              console.log("No documents found for Mitarbeiter-ID:", mitarbeiterId);
-            }
-          })
-          .catch((error) => {
-            console.error("Error querying StelleRolle collection:", error);
-        });
-
-        var anstragdatum = new Date();
-        var oSelectedType = oView.byId("absenceTypeSelect").getSelectedItem();
-        var sDate = oView.byId("datepicker").getValue();
-        var sZeitraum = oView.byId("Zeitraum").getValue();
-        var oStartDate = oView.byId("Zeitraum").getDateValue();
-        var oEndDate = oView.byId("Zeitraum").getSecondDateValue();
-        var sStartTime = oView.byId("beginnTimePicker").getValue();
-        var sEndTime = oView.byId("endTimePicker").getValue();
-        var calculatedDays = oView.byId("durationTagInput").getValue();
-        var calculatedHours = oView.byId("durationInput").getValue();
-        var urlaubkontingent = Number(oView.byId("urlaubkontingent").getText());
-        var sNote = oView.byId("noteTextArea").getValue();
-
-        if (
-          !oSelectedType ||
-          (!sZeitraum && (!sDate || !sStartTime || !sEndTime))
-        ) {
-          MessageToast.show("Bitte alle erforderlichen Felder ausfüllen!");
+        const mitarbeiterId = oUserModel.getProperty("/Mitarbeiter-ID");
+        const oSelectedType = oView.byId("absenceTypeSelect").getSelectedItem();
+        if (!oSelectedType) {
+          MessageToast.show("Bitte Abwesenheitstyp auswählen!");
           return;
         }
 
-        let parsedDate;
-        if (!sZeitraum && sDate) {
-          const parts = sDate.split("/");
-          if (parts.length === 3) {
-            const [day, month, year] = parts.map(Number);
-            parsedDate = new Date(
-              `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
-                2,
-                "0"
-              )}`
+        const absenceTypeText = oSelectedType.getText();
+        const absenceTypeKey = oSelectedType.getKey();
+
+        const oOneDayDate = this.byId("datepicker").getDateValue();
+        const sStartTime = this.byId("beginnTimePicker").getValue();
+        const sEndTime = this.byId("endTimePicker").getValue();
+        const sHours = this.byId("durationInput").getValue();
+
+        const oStartDate = this.byId("Zeitraum").getDateValue();
+        const oEndDate = this.byId("Zeitraum").getSecondDateValue();
+        const sDurationDays = this.byId("durationTagInput").getValue();
+
+        const sNote = this.byId("noteTextArea").getValue();
+        const urlaubkontingent = Number(
+          this.byId("urlaubkontingent").getText()
+        );
+        const selectedRadioButton = this.getView()
+          .getModel()
+          .getProperty("/selectedRadioButton");
+
+        const antragDatum = new Date();
+
+        if (absenceTypeText === "Urlaub") {
+
+          if (
+            selectedRadioButton === "moreThanOneDay" &&
+            Number(sDurationDays) > urlaubkontingent
+          ) {
+            MessageToast.show(
+              `Ihr Urlaubskontingent reicht nicht aus. Verfügbare Tage: ${urlaubkontingent}`
             );
-            if (isNaN(parsedDate.getTime())) {
-              MessageToast.show(
-                "Ungültiges Datum. Bitte überprüfen Sie die Eingabe."
-              );
-              return;
-            }
+            return;
           }
-        }
 
-        const absenceType = oSelectedType.getText();
+          if (
+            selectedRadioButton === "oneDayOrLess" &&
+            (!oOneDayDate || !sStartTime || !sEndTime)
+          ) {
+            MessageToast.show("Bitte ein korrektes Datum und Zeiten eingeben.");
+            return;
+          }
 
-        // Check Urlaub Kontingent
-        if (absenceType === "Urlaub" && calculatedDays > urlaubkontingent) {
-          MessageToast.show(
-            `Ihr Urlaubskontingent reicht nicht aus. Verfügbare Tage: ${urlaubkontingent}`
-          );
-          return;
-        }
+          const antragTimestamp = firebase.Timestamp.fromDate(antragDatum);
+          let docID = "";
 
-        const startOfDay = new Date(anstragdatum).setHours(0, 0, 0, 0);
-        const endOfDay = new Date(anstragdatum).setHours(23, 59, 59, 999);
+          docID = "Urlaub_" + mitarbeiterId + "_" + Date.now();
 
-        const collectionName =
-          absenceType === "Urlaub" ? "Urlaubsplan" : "Abwesenheiten";
-        const type = absenceType === "Urlaub" ? "Urlaub" : "Teleworking";
 
-        // Handle Firebase Request
-        firebase.db
-          .collection(collectionName)
-          .where("Mitarbeiter-ID", "==", mitarbeiterId)
-          .where(
-            "Antragsdatum",
-            ">=",
-            firebase.Timestamp.fromDate(new Date(startOfDay))
-          )
-          .where(
-            "Antragsdatum",
-            "<=",
-            firebase.Timestamp.fromDate(new Date(endOfDay))
-          )
-          .get()
-          .then((querySnapshot) => {
-            const seineurlaubsplan = querySnapshot.docs.map((doc) =>
-              doc.data()
+          const requestDataUrlaub = {
+            "Mitarbeiter-ID": mitarbeiterId,
+            "Abwesenheit-ID": absenceTypeKey, 
+            Antragsdatum: antragTimestamp,
+            Status: "In Bearbeitung",
+            Kommentare: sNote,
+          };
+
+          if (selectedRadioButton === "moreThanOneDay") {
+
+            requestDataUrlaub.Startdatum =
+              firebase.Timestamp.fromDate(oStartDate);
+            requestDataUrlaub.Enddatum = firebase.Timestamp.fromDate(oEndDate);
+            requestDataUrlaub.UrlaubKontingent = urlaubkontingent;
+            requestDataUrlaub.geplanterUrlaubstage = Number(sDurationDays);
+          } else {
+
+            requestDataUrlaub.Datum = firebase.Timestamp.fromDate(oOneDayDate);
+            requestDataUrlaub.Startzeit = sStartTime; 
+            requestDataUrlaub.Endzeit = sEndTime;
+            const neededDays = parseFloat(sHours) > 4 ? 1 : 0.5;
+            requestDataUrlaub.geplanterUrlaubstage = neededDays;
+            requestDataUrlaub.UrlaubKontingent = urlaubkontingent;
+          }
+
+          firebase.db
+            .collection("Urlaubsplan")
+            .doc(docID)
+            .set(requestDataUrlaub)
+            .then(() => {
+              MessageToast.show("Urlaub erfolgreich beantragt.");
+              this.clearInputFields([
+                "datepicker",
+                "beginnTimePicker",
+                "endTimePicker",
+                "durationInput",
+                "Zeitraum",
+                "durationTagInput",
+                "noteTextArea",
+              ]);
+              sap.ui.core.UIComponent.getRouterFor(this).navTo(
+                "absenceOverview"
+              );
+            })
+            .catch((error) => {
+              console.error("Fehler beim Speichern im Urlaubsplan:", error);
+              MessageToast.show("Fehler beim Speichern des Urlaubs.");
+            });
+        } else {
+
+          if (!oOneDayDate || !sStartTime || !sEndTime) {
+            MessageToast.show(
+              "Bitte Datum und Uhrzeiten für Teleworking eingeben."
             );
-            const formattedDate = `${anstragdatum.getFullYear()}-${String(
-              anstragdatum.getMonth() + 1
-            ).padStart(2, "0")}-${String(anstragdatum.getDate()).padStart(
-              2,
-              "0"
-            )}`;
-            const docID = `${formattedDate}_${
-              seineurlaubsplan.length + 1
-            }_${mitarbeiterId}`;
+            return;
+          }
 
-            // Prepare Request Data
-            const requestData = {
-              Antragsdatum: anstragdatum,
-              "Mitarbeiter-ID": mitarbeiterId,
-              "Abwesenheit-ID": oSelectedType.getKey(),
-              Kommentare: sNote,
-              Status: "In Bearbeitung",
-              ...(type === "Urlaub" &&
-                sDate && {
-                  UrlaubKontingent: urlaubkontingent,
-                  geplanterUrlaubstage: tarif == 1 ? (calculatedHours > 4 ? 1 : 0.5) : 1,
-                }),
-              ...(type === "Teleworking" && {
-                  Arbeitstunden: calculatedHours,
-                }),
-              ...(sZeitraum
-                ? {
-                    Startdatum: oStartDate,
-                    Enddatum: oEndDate,
-                    UrlaubKontingent: urlaubkontingent,
-                    geplanterUrlaubstage: calculatedDays,
-                  }
-                : {
-                    Datum: firebase.Timestamp.fromDate(parsedDate),
-                    Startzeit: sStartTime,
-                    Endzeit: sEndTime,
-                  }),
-            };
+          const antragTimestamp = firebase.Timestamp.fromDate(antragDatum);
+          const oneDayTimestamp = firebase.Timestamp.fromDate(oOneDayDate);
 
-            return firebase.db
-              .collection(collectionName)
-              .doc(docID)
-              .set(requestData)
-              .then(() => {
-                MessageToast.show(
-                  `${absenceType} erfolgreich beantragt. ${
-                    absenceType === "Urlaub"
-                      ? `Verbraucht: ${calculatedDays} Tage.`
-                      : ""
-                  }`
-                );
-                  this.clearInputFields([
-                    "datepicker",
-                    "beginnTimePicker",
-                    "endTimePicker",
-                    "durationInput",
-                    "Zeitraum",
-                    "durationTagInput",
-                    "noteTextArea",
-                  ]);
-                sap.ui.core.UIComponent.getRouterFor(this).navTo("absenceOverview");
-              });
-          })
-          .catch((error) => {
-            console.error(
-              `Fehler beim Speichern des ${collectionName}:`,
-              error
-            );
-            MessageToast.show(`Fehler beim Speichern des ${collectionName}.`);
-          });
+          const sArbeitstunden = sHours ? sHours.toString() : "0";
+
+          const docID = "Tele_" + mitarbeiterId + "_" + Date.now();
+
+          const requestDataTele = {
+            "Abwesenheit-ID": absenceTypeKey, 
+            Antragsdatum: antragTimestamp, 
+            Arbeitstunden: sArbeitstunden,
+            Datum: oneDayTimestamp,
+            Endzeit: sEndTime, 
+            Kommentare: sNote, 
+            "Mitarbeiter-ID": mitarbeiterId, 
+            Startzeit: sStartTime, 
+            Status: "In Bearbeitung", 
+          };
+
+          firebase.db
+            .collection("Abwesenheiten")
+            .doc(docID)
+            .set(requestDataTele)
+            .then(() => {
+              MessageToast.show(absenceTypeText + " erfolgreich beantragt.");
+              this.clearInputFields([
+                "datepicker",
+                "beginnTimePicker",
+                "endTimePicker",
+                "durationInput",
+                "Zeitraum",
+                "durationTagInput",
+                "noteTextArea",
+              ]);
+              sap.ui.core.UIComponent.getRouterFor(this).navTo(
+                "absenceOverview"
+              );
+            })
+            .catch((error) => {
+              console.error(
+                "Fehler beim Speichern des Abwesenheiten-Dokuments:",
+                error
+              );
+              MessageToast.show("Fehler beim Speichern der Abwesenheit.");
+            });
+        }
       },
 
       onCancelRequest: function () {
